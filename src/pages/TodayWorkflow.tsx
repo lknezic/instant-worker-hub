@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { workflowQuestions, reviewCards as initialReviewCards, improvementsSummary, overallImprovement, postSummary, type ReviewCard } from "@/data/mockData";
-import { Check, ChevronRight, Sparkles, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { workflowQuestions, reviewCards as initialReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
+import { Check, ChevronRight, Sparkles } from "lucide-react";
+import { useWorkflow } from "@/contexts/WorkflowContext";
 
 const stepMeta = [
   { label: "Answer Questions", time: "2 min" },
@@ -10,6 +11,44 @@ const stepMeta = [
   { label: "Post & Go", time: "1 min" },
 ];
 
+// Confetti particle component
+const Confetti = () => {
+  const colors = [
+    "hsl(var(--primary))",
+    "hsl(var(--success))",
+    "hsl(var(--info))",
+    "hsl(var(--warning))",
+  ];
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {Array.from({ length: 40 }, (_, i) => {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.5;
+        const size = 4 + Math.random() * 6;
+        const color = colors[i % colors.length];
+        const rotation = Math.random() * 360;
+        return (
+          <div
+            key={i}
+            className="absolute animate-confetti"
+            style={{
+              left: `${left}%`,
+              top: "-10px",
+              width: `${size}px`,
+              height: `${size * 0.6}px`,
+              backgroundColor: color,
+              borderRadius: "2px",
+              animationDelay: `${delay}s`,
+              transform: `rotate(${rotation}deg)`,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
 const TodayWorkflow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
@@ -18,11 +57,12 @@ const TodayWorkflow = () => {
   const [editingCard, setEditingCard] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [done, setDone] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const { setTodayComplete } = useWorkflow();
 
   const pendingReview = reviewCards.filter((c) => c.status === "pending");
   const allQuestionsAnswered = answeredQuestions.size >= workflowQuestions.length;
   const allReviewed = pendingReview.length === 0;
-  // Skip step 3 (strategy) for tier 1/2
   const isTier3 = false;
 
   const answerQuestion = (qId: string) => {
@@ -51,10 +91,19 @@ const TodayWorkflow = () => {
 
   const nextStep = () => {
     if (currentStep === 2 && !isTier3) {
-      setCurrentStep(4); // Skip strategy step
+      setCurrentStep(4);
     } else {
       setCurrentStep((s) => s + 1);
     }
+  };
+
+  const handleComplete = () => {
+    setShowConfetti(true);
+    setTodayComplete(true);
+    setTimeout(() => {
+      setDone(true);
+      setTimeout(() => setShowConfetti(false), 1000);
+    }, 800);
   };
 
   const totalTime = stepMeta.reduce((acc, s) => acc + parseInt(s.time), 0);
@@ -62,10 +111,13 @@ const TodayWorkflow = () => {
   if (done) {
     return (
       <div className="h-full flex items-center justify-center">
+        {showConfetti && <Confetti />}
         <div className="text-center animate-scale-in">
-          <div className="text-5xl mb-4">☕</div>
+          <div className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center mx-auto mb-4 pulse-ring">
+            <Check className="w-8 h-8 text-success" />
+          </div>
           <h2 className="text-xl font-bold mb-2">Today complete!</h2>
-          <p className="text-sm text-muted-foreground">See you tomorrow morning.</p>
+          <p className="text-sm text-muted-foreground">See you tomorrow morning. ☕</p>
         </div>
       </div>
     );
@@ -73,6 +125,8 @@ const TodayWorkflow = () => {
 
   return (
     <div className="h-full flex flex-col">
+      {showConfetti && <Confetti />}
+
       {/* Progress bar */}
       <div className="px-6 py-3 border-b border-border bg-card/30 shrink-0">
         <div className="flex items-center justify-between mb-2">
@@ -149,7 +203,7 @@ const TodayWorkflow = () => {
             </div>
           )}
 
-          {/* STEP 2: Review Content */}
+          {/* STEP 2: Review Content — Card Stack */}
           {currentStep === 1 && (
             <div className="animate-fade-in">
               <div className="flex items-center justify-between mb-6">
@@ -158,70 +212,101 @@ const TodayWorkflow = () => {
               </div>
 
               {!allReviewed ? (
-                (() => {
-                  const card = pendingReview[0];
-                  if (!card) return null;
-                  return (
-                    <div key={card.id} className="glass-card-strong rounded-xl p-5 glow-border animate-scale-in">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{card.workerEmoji}</span>
-                          <span className="text-sm font-semibold">{card.workerName}</span>
-                        </div>
-                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{card.skill}</span>
+                <div className="relative" style={{ minHeight: "340px" }}>
+                  {/* Next card peek (behind) */}
+                  {pendingReview.length > 1 && (
+                    <div className="absolute inset-x-3 top-3 glass-card rounded-xl p-5 opacity-30 scale-[0.97] pointer-events-none border border-border/30" style={{ zIndex: 0 }}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">{pendingReview[1].workerEmoji}</span>
+                        <span className="text-sm font-semibold">{pendingReview[1].workerName}</span>
                       </div>
-
-                      {editingCard === card.id ? (
-                        <div className="mb-4">
-                          <textarea
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            rows={4}
-                            className="w-full bg-background/50 border border-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none transition-all"
-                          />
-                          <div className="flex gap-2 mt-2">
-                            <button onClick={() => handleSaveEdit(card.id)} className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">Save</button>
-                            <button onClick={() => setEditingCard(null)} className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5">Cancel</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">"{card.content}"</p>
-                      )}
-
-                      {/* Star Rating */}
-                      <div className="flex items-center gap-1 mb-4">
-                        <span className="text-xs text-muted-foreground mr-1">Rate:</span>
-                        {Array.from({ length: 10 }, (_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => handleRate(card.id, i + 1)}
-                            className={`w-5 h-5 rounded text-xs flex items-center justify-center transition-all ${
-                              i < card.rating ? "text-primary" : "text-muted-foreground/20"
-                            }`}
-                          >
-                            <Star className="w-3.5 h-3.5" fill={i < card.rating ? "currentColor" : "none"} />
-                          </button>
-                        ))}
-                        {card.rating > 0 && <span className="text-xs text-primary font-semibold ml-1">{card.rating}/10</span>}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button onClick={() => handleReviewAction(card.id, "approved")} className="flex-1 text-xs font-medium py-2 rounded-lg bg-success/15 text-success hover:bg-success/25 transition-colors">
-                          ✅ Approve
-                        </button>
-                        <button onClick={() => handleEdit(card)} className="flex-1 text-xs font-medium py-2 rounded-lg bg-info/15 text-info hover:bg-info/25 transition-colors">
-                          ✏️ Edit
-                        </button>
-                        <button onClick={() => handleReviewAction(card.id, "rejected")} className="flex-1 text-xs font-medium py-2 rounded-lg bg-destructive/15 text-destructive hover:bg-destructive/25 transition-colors">
-                          ❌ Reject
-                        </button>
-                        <button onClick={() => { setReviewCards(prev => prev.map(c => c.id === card.id ? { ...c, status: "approved" } : c)); }} className="text-xs font-medium py-2 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
-                          ⏭ Skip
-                        </button>
-                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">"{pendingReview[1].content}"</p>
                     </div>
-                  );
-                })()
+                  )}
+
+                  {/* Third card peek */}
+                  {pendingReview.length > 2 && (
+                    <div className="absolute inset-x-6 top-5 glass-card rounded-xl p-5 opacity-15 scale-[0.94] pointer-events-none border border-border/20" style={{ zIndex: -1 }}>
+                      <div className="h-12" />
+                    </div>
+                  )}
+
+                  {/* Current card */}
+                  {(() => {
+                    const card = pendingReview[0];
+                    if (!card) return null;
+                    return (
+                      <div key={card.id} className="relative glass-card-strong rounded-xl p-6 glow-border animate-scale-in" style={{ zIndex: 1 }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{card.workerEmoji}</span>
+                            <span className="text-sm font-semibold">{card.workerName}</span>
+                          </div>
+                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{card.skill}</span>
+                        </div>
+
+                        {editingCard === card.id ? (
+                          <div className="mb-4">
+                            <textarea
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              rows={5}
+                              className="w-full bg-background/50 border border-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none transition-all"
+                            />
+                            <div className="flex gap-2 mt-2">
+                              <button onClick={() => handleSaveEdit(card.id)} className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">Save</button>
+                              <button onClick={() => setEditingCard(null)} className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5">Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-5 min-h-[60px]">"{card.content}"</p>
+                        )}
+
+                        {/* Numbered Rating 1-10 */}
+                        <div className="flex items-center gap-1.5 mb-5">
+                          <span className="text-xs text-muted-foreground mr-1">Rate:</span>
+                          {Array.from({ length: 10 }, (_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleRate(card.id, i + 1)}
+                              className={`w-7 h-7 rounded-md text-xs font-semibold flex items-center justify-center transition-all border ${
+                                i + 1 === card.rating
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : i < card.rating
+                                  ? "bg-primary/15 text-primary border-primary/30"
+                                  : "bg-muted/30 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button onClick={() => handleReviewAction(card.id, "approved")} className="flex-1 text-xs font-medium py-2.5 rounded-lg bg-success/15 text-success hover:bg-success/25 transition-colors">
+                            ✅ Approve
+                          </button>
+                          <button onClick={() => handleEdit(card)} className="flex-1 text-xs font-medium py-2.5 rounded-lg bg-info/15 text-info hover:bg-info/25 transition-colors">
+                            ✏️ Edit
+                          </button>
+                          <button onClick={() => handleReviewAction(card.id, "rejected")} className="flex-1 text-xs font-medium py-2.5 rounded-lg bg-destructive/15 text-destructive hover:bg-destructive/25 transition-colors">
+                            ❌ Reject
+                          </button>
+                          <button onClick={() => { setReviewCards(prev => prev.map(c => c.id === card.id ? { ...c, status: "approved" } : c)); }} className="text-xs font-medium py-2.5 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
+                            ⏭ Skip
+                          </button>
+                        </div>
+
+                        {/* Card counter */}
+                        <div className="text-center mt-4">
+                          <span className="text-[10px] text-muted-foreground">
+                            {reviewCards.length - pendingReview.length + 1} of {reviewCards.length}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               ) : (
                 <div className="text-center py-8 animate-fade-in">
                   <span className="text-success text-lg">✅</span>
@@ -279,13 +364,49 @@ const TodayWorkflow = () => {
             </div>
           )}
 
-          {/* STEP 4: Approve Strategy (Tier 3 only — show teaser for others) */}
+          {/* STEP 4: Approve Strategy (Tier 3 — Agent Plan style) */}
           {currentStep === 3 && (
             <div className="animate-fade-in">
               {isTier3 ? (
                 <div>
-                  <h2 className="text-lg font-bold mb-6">📋 This Week's Content Pillar</h2>
-                  {/* Tier 3 content would go here */}
+                  <h2 className="text-lg font-bold mb-2">📋 This Week's Content Pillar</h2>
+                  <p className="text-sm text-muted-foreground mb-6">Your strategist aligned all workers around one theme.</p>
+
+                  <div className="glass-card-strong rounded-xl p-5 gradient-border mb-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                        <span className="text-sm">🎯</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-primary font-semibold uppercase tracking-wider">Weekly Theme</span>
+                        <h3 className="text-sm font-bold">{weeklyPillar.title}</h3>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {weeklyPillar.angles.map((angle, i) => (
+                        <div key={i} className="flex items-start gap-3 glass-card rounded-lg p-3">
+                          <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-[10px] text-primary font-bold">{i + 1}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-semibold">{angle.worker}</span>
+                            <p className="text-xs text-muted-foreground mt-0.5">{angle.plan}</p>
+                          </div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-success neon-dot-green shrink-0 mt-1.5" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button onClick={nextStep} className="flex-1 bg-primary text-primary-foreground text-sm font-semibold rounded-lg py-2.5 hover:opacity-90 transition-all">
+                      ✅ Approve Plan
+                    </button>
+                    <button onClick={nextStep} className="text-sm py-2.5 px-4 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all">
+                      Skip
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="glass-card rounded-xl p-6 text-center">
@@ -314,10 +435,10 @@ const TodayWorkflow = () => {
               </div>
 
               <div className="space-y-2">
-                <button onClick={() => setDone(true)} className="w-full text-sm font-medium py-2.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all">
+                <button onClick={handleComplete} className="w-full text-sm font-medium py-2.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all">
                   📸 I'll add screenshots now
                 </button>
-                <button onClick={() => setDone(true)} className="w-full bg-primary text-primary-foreground text-sm font-semibold rounded-lg py-2.5 hover:opacity-90 transition-all">
+                <button onClick={handleComplete} className="w-full bg-primary text-primary-foreground text-sm font-semibold rounded-lg py-2.5 hover:opacity-90 transition-all">
                   ✅ All good, post everything
                 </button>
               </div>

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import logoIcon from "@/assets/logo-icon.png";
 import StrategistPanel from "@/components/strategist/StrategistPanel";
-import { LayoutDashboard, Users, Brain, Shield, BookCheck, Settings, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, Brain, Shield, BookCheck, Settings, ClipboardList, Check } from "lucide-react";
+import { useWorkflow } from "@/contexts/WorkflowContext";
 
 const navItems = [
   { to: "/app", label: "Today", icon: ClipboardList, end: true },
@@ -19,6 +20,7 @@ const intelligenceItems = [
 const AppLayout = () => {
   const [intelOpen, setIntelOpen] = useState(false);
   const navigate = useNavigate();
+  const { todayComplete } = useWorkflow();
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -48,7 +50,12 @@ const AppLayout = () => {
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
               <item.icon className="w-4 h-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.label === "Today" && todayComplete && (
+                <span className="w-4 h-4 rounded-full bg-success/20 flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 text-success" />
+                </span>
+              )}
             </NavLink>
           ))}
 

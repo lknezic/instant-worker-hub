@@ -2,6 +2,7 @@ import { useState } from "react";
 import { workers as allWorkers, workerLearning, activityLog } from "@/data/mockData";
 import { ChannelIcon, StatusDot } from "@/components/Icons";
 import { Star } from "lucide-react";
+import AnimatedNumber from "@/components/AnimatedNumber";
 
 const Workers = () => {
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
@@ -109,11 +110,17 @@ const Workers = () => {
                         )}
                         <div className="text-center">
                           <span className="text-[10px] text-muted-foreground block">{w.week}</span>
-                          <span className={`text-sm font-bold ${i === 2 ? "text-primary" : "text-foreground"}`}>{w.val}</span>
+                          <AnimatedNumber
+                            value={w.val}
+                            duration={800 + i * 300}
+                            className={`text-sm font-bold ${i === 2 ? "text-primary" : "text-foreground"}`}
+                          />
                           {w.delta && (
-                            <span className={`text-[10px] font-semibold block ${w.delta.startsWith("+") ? "text-success" : "text-destructive"}`}>
-                              {w.delta}
-                            </span>
+                            <AnimatedNumber
+                              value={w.delta}
+                              duration={1000 + i * 300}
+                              className={`text-[10px] font-semibold block ${w.delta.startsWith("+") ? "text-success" : "text-destructive"}`}
+                            />
                           )}
                         </div>
                       </div>
