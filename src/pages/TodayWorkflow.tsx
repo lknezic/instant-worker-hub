@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { workflowQuestions, reviewCards as initialReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import { toast } from "sonner";
 
 const stepMeta = [
   { label: "Answer Questions", time: "2 min" },
@@ -11,7 +13,15 @@ const stepMeta = [
   { label: "Post & Go", time: "1 min" },
 ];
 
-// Confetti particle component
+const bestPost = {
+  content: "Numbers that changed my trading: 45 DTE, 0.30 delta, 2% max risk per position...",
+  impressions: 6800,
+  saves: 142,
+  comments: 31,
+  workerName: "X Poster",
+  workerEmoji: "✍️",
+};
+
 const Confetti = () => {
   const colors = [
     "hsl(var(--primary))",
@@ -69,15 +79,19 @@ const TodayWorkflow = () => {
     setAnsweredQuestions((prev) => new Set(prev).add(qId));
   };
 
-  const handleReviewAction = (cardId: string, action: "approved" | "rejected") => {
+  const handleReviewAction = useCallback((cardId: string, action: "approved" | "rejected") => {
     setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, status: action } : c));
     setCurrentReviewIndex((i) => Math.min(i + 1, reviewCards.length - 1));
     setEditingCard(null);
-  };
+    toast(action === "approved" ? "✅ Post approved" : "❌ Post rejected", {
+      duration: 2000,
+    });
+  }, [reviewCards.length]);
 
-  const handleRate = (cardId: string, rating: number) => {
+  const handleRate = useCallback((cardId: string, rating: number) => {
     setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, rating } : c));
-  };
+    toast(`⭐ Rated ${rating}/10`, { duration: 1500 });
+  }, []);
 
   const handleEdit = (card: ReviewCard) => {
     setEditingCard(card.id);
@@ -87,7 +101,13 @@ const TodayWorkflow = () => {
   const handleSaveEdit = (cardId: string) => {
     setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, content: editContent } : c));
     setEditingCard(null);
+    toast("✏️ Post updated", { duration: 1500 });
   };
+
+  const handleSkip = useCallback((cardId: string) => {
+    setReviewCards(prev => prev.map(c => c.id === cardId ? { ...c, status: "approved" } : c));
+    toast("⏭ Skipped", { duration: 1500 });
+  }, []);
 
   const nextStep = () => {
     if (currentStep === 2 && !isTier3) {
@@ -105,6 +125,28 @@ const TodayWorkflow = () => {
       setTimeout(() => setShowConfetti(false), 1000);
     }, 800);
   };
+
+  // Keyboard shortcuts for review step
+  useEffect(() => {
+    if (currentStep !== 1 || pendingReview.length === 0) return;
+    const card = pendingReview[0];
+    if (!card) return;
+
+    const handler = (e: KeyboardEvent) => {
+      if (editingCard) return; // Don't capture when editing
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === "a" || e.key === "A") handleReviewAction(card.id, "approved");
+      else if (e.key === "r" || e.key === "R") handleReviewAction(card.id, "rejected");
+      else if (e.key === "s" || e.key === "S") handleSkip(card.id);
+      else if (e.key === "e" || e.key === "E") handleEdit(card);
+      else if (e.key >= "1" && e.key <= "9") handleRate(card.id, parseInt(e.key));
+      else if (e.key === "0") handleRate(card.id, 10);
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [currentStep, pendingReview, editingCard, handleReviewAction, handleRate, handleSkip]);
 
   const totalTime = stepMeta.reduce((acc, s) => acc + parseInt(s.time), 0);
 
@@ -126,6 +168,7 @@ const TodayWorkflow = () => {
   return (
     <div className="h-full flex flex-col">
       {showConfetti && <Confetti />}
+      <KeyboardShortcuts />
 
       {/* Progress bar */}
       <div className="px-6 py-3 border-b border-border bg-card/30 shrink-0">
@@ -151,6 +194,9 @@ const TodayWorkflow = () => {
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xs text-primary font-semibold">Step {currentStep + 1} of {isTier3 ? 5 : 4}</span>
           <span className="text-xs text-muted-foreground">• {stepMeta[currentStep]?.label} • ~{stepMeta[currentStep]?.time} remaining</span>
+          {currentStep === 1 && (
+            <span className="text-[10px] text-muted-foreground ml-auto font-mono">A approve · R reject · S skip · E edit · 1-9 rate</span>
+          )}
         </div>
       </div>
 
@@ -280,6 +326,9 @@ const TodayWorkflow = () => {
                               {i + 1}
                             </button>
                           ))}
+                          {card.rating > 0 && (
+                            <span className="text-xs text-primary font-bold ml-1">{card.rating}/10</span>
+                          )}
                         </div>
 
                         <div className="flex gap-2">
@@ -292,12 +341,11 @@ const TodayWorkflow = () => {
                           <button onClick={() => handleReviewAction(card.id, "rejected")} className="flex-1 text-xs font-medium py-2.5 rounded-lg bg-destructive/15 text-destructive hover:bg-destructive/25 transition-colors">
                             ❌ Reject
                           </button>
-                          <button onClick={() => { setReviewCards(prev => prev.map(c => c.id === card.id ? { ...c, status: "approved" } : c)); }} className="text-xs font-medium py-2.5 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
+                          <button onClick={() => handleSkip(card.id)} className="text-xs font-medium py-2.5 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
                             ⏭ Skip
                           </button>
                         </div>
 
-                        {/* Card counter */}
                         <div className="text-center mt-4">
                           <span className="text-[10px] text-muted-foreground">
                             {reviewCards.length - pendingReview.length + 1} of {reviewCards.length}
@@ -328,6 +376,24 @@ const TodayWorkflow = () => {
           {currentStep === 2 && (
             <div className="animate-fade-in">
               <h2 className="text-lg font-bold mb-6">📈 This week's improvements</h2>
+
+              {/* Best post callout */}
+              <div className="glass-card-strong rounded-xl p-5 gradient-border mb-5 animate-fade-in">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🏆</span>
+                  <span className="text-sm font-bold text-primary">Your best post this week</span>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span>{bestPost.workerEmoji}</span>
+                  <span className="text-xs font-semibold">{bestPost.workerName}</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">"{bestPost.content}"</p>
+                <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
+                  <span>👁 {bestPost.impressions.toLocaleString()}</span>
+                  <span>🔖 {bestPost.saves}</span>
+                  <span>💬 {bestPost.comments}</span>
+                </div>
+              </div>
 
               <div className="glass-card rounded-xl p-5 space-y-4">
                 {improvementsSummary.map((imp, i) => (

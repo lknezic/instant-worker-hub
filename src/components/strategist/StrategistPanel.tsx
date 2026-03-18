@@ -118,7 +118,7 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
     }, 1200);
   };
 
-  // Locked panel for Tier 1/2 — shows greyed-out preview of real conversation
+  // Locked panel for Tier 1/2 — shows greyed-out preview with READABLE text
   if (tier < 3) {
     return (
       <div className="w-64 shrink-0 border-l border-border bg-card/20 flex flex-col relative">
@@ -133,8 +133,8 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
           </div>
         </div>
 
-        {/* Greyed-out preview of real conversation */}
-        <div className="flex-1 overflow-hidden p-3 space-y-3 opacity-40 pointer-events-none select-none">
+        {/* Greyed-out preview — increased opacity for readability */}
+        <div className="flex-1 overflow-hidden p-3 space-y-3 opacity-50 pointer-events-none select-none">
           {strategistMessages.map((msg) => (
             <ChatMessage key={msg.id} msg={msg} disabled />
           ))}

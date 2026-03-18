@@ -2,6 +2,7 @@ import { useState } from "react";
 import { kanbanCards as initialCards, type ReviewCard } from "@/data/mockData";
 import { ChannelIcon } from "@/components/Icons";
 import { Star } from "lucide-react";
+import { toast } from "sonner";
 
 const columns = [
   { key: "pending" as const, label: "PENDING", dotColor: "bg-warning" },
@@ -18,6 +19,9 @@ const Dashboard = () => {
 
   const updateCard = (id: string, updates: Partial<ReviewCard>) => {
     setCards((c) => c.map((card) => card.id === id ? { ...card, ...updates } : card));
+    if (updates.status === "approved") toast("✅ Post approved", { duration: 2000 });
+    if (updates.status === "rejected") toast("❌ Post rejected", { duration: 2000 });
+    if (updates.rating) toast(`⭐ Rated ${updates.rating}/10`, { duration: 1500 });
   };
 
   const addTask = () => {
@@ -44,6 +48,7 @@ const Dashboard = () => {
     setCards((c) => [...c, newCard]);
     setNewTaskContent("");
     setShowAddModal(false);
+    toast("✅ Task created", { duration: 2000 });
   };
 
   const StarRating = ({ rating, cardId }: { rating: number; cardId: string }) => (
@@ -66,13 +71,15 @@ const Dashboard = () => {
     </div>
   );
 
+  const pendingCount = cards.filter(c => c.status === "pending").length;
+
   return (
     <div className="h-full flex flex-col">
       {/* Stats bar */}
       <div className="px-6 py-3 border-b border-border flex items-center gap-0 text-sm shrink-0 bg-card/30">
         {[
           { label: "Posts this week", value: "15/35", color: "text-foreground" },
-          { label: "Pending", value: String(cards.filter(c => c.status === "pending").length), color: "text-warning" },
+          { label: "Pending", value: String(pendingCount), color: "text-warning" },
           { label: "Engagement", value: "2.3%", color: "text-success" },
           { label: "Grade", value: "B+", color: "text-primary" },
         ].map((stat, i) => (
@@ -106,10 +113,16 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mb-3 px-1">
                   <div className="flex items-center gap-2">
                     <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} relative`}>
-                      {col.key === "pending" && <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} animate-ping absolute inset-0`} />}
+                      {col.key === "pending" && pendingCount > 0 && <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} animate-ping absolute inset-0`} />}
                     </div>
                     <span className="text-[11px] font-semibold tracking-widest text-muted-foreground">{col.label}</span>
-                    <span className="text-[11px] text-muted-foreground/40 font-bold">{colCards.length}</span>
+                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                      col.key === "pending" && pendingCount > 0
+                        ? "bg-warning/15 text-warning animate-pulse"
+                        : "text-muted-foreground/40"
+                    }`}>
+                      {colCards.length}
+                    </span>
                   </div>
                   {col.key === "pending" && (
                     <button onClick={() => setShowAddModal(true)} className="text-xs text-primary hover:text-primary/80 font-semibold transition-colors">

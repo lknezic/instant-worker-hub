@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Minus } from "lucide-react";
 
 const plans = [
   {
@@ -40,11 +40,33 @@ const plans = [
   },
 ];
 
+const comparisonFeatures = [
+  { feature: "Channels", starter: "1", growth: "2", scale: "Unlimited", strategy: "Unlimited" },
+  { feature: "Workers", starter: "3", growth: "10", scale: "Unlimited", strategy: "Unlimited" },
+  { feature: "Posts per day", starter: "5", growth: "15", scale: "Unlimited", strategy: "Unlimited" },
+  { feature: "Weekly learning", starter: true, growth: true, scale: true, strategy: true },
+  { feature: "Guardian safety", starter: true, growth: true, scale: true, strategy: true },
+  { feature: "Content recycling", starter: false, growth: true, scale: true, strategy: true },
+  { feature: "Custom tasks", starter: false, growth: true, scale: true, strategy: true },
+  { feature: "Judge reports", starter: false, growth: true, scale: true, strategy: true },
+  { feature: "Proof library", starter: false, growth: false, scale: true, strategy: true },
+  { feature: "Custom integrations", starter: false, growth: false, scale: true, strategy: true },
+  { feature: "AI Strategist", starter: false, growth: false, scale: false, strategy: true },
+  { feature: "Weekly pillars", starter: false, growth: false, scale: false, strategy: true },
+  { feature: "Cross-channel coherence", starter: false, growth: false, scale: false, strategy: true },
+];
+
 const Pricing = () => {
   const navigate = useNavigate();
 
+  const renderCell = (val: boolean | string) => {
+    if (val === true) return <Check className="w-4 h-4 text-primary mx-auto" />;
+    if (val === false) return <Minus className="w-4 h-4 text-muted-foreground/30 mx-auto" />;
+    return <span className="text-xs font-medium">{val}</span>;
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center px-4 py-16 relative overflow-hidden">
       <div className="text-center mb-12 relative z-10 animate-fade-in">
         <button onClick={() => navigate("/login")} className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block transition-colors">
           ← Back to login
@@ -113,6 +135,35 @@ const Pricing = () => {
             </button>
           </div>
         ))}
+      </div>
+
+      {/* Feature Comparison Table */}
+      <div className="mt-16 max-w-5xl w-full relative z-10 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <h2 className="text-xl font-bold text-center mb-8">Compare all features</h2>
+        <div className="glass-card rounded-xl overflow-hidden border border-border">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-card/50">
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 w-[200px]">Feature</th>
+                <th className="text-center text-xs font-semibold text-muted-foreground px-4 py-3">Starter</th>
+                <th className="text-center text-xs font-semibold px-4 py-3 text-primary">Growth</th>
+                <th className="text-center text-xs font-semibold text-muted-foreground px-4 py-3">Scale</th>
+                <th className="text-center text-xs font-semibold text-muted-foreground px-4 py-3">Strategy</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonFeatures.map((row, i) => (
+                <tr key={row.feature} className={`border-b border-border/50 ${i % 2 === 0 ? "" : "bg-card/20"}`}>
+                  <td className="text-xs font-medium px-4 py-2.5">{row.feature}</td>
+                  <td className="text-center px-4 py-2.5">{renderCell(row.starter)}</td>
+                  <td className="text-center px-4 py-2.5">{renderCell(row.growth)}</td>
+                  <td className="text-center px-4 py-2.5">{renderCell(row.scale)}</td>
+                  <td className="text-center px-4 py-2.5">{renderCell(row.strategy)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
