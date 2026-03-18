@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { kanbanCards as initialCards, type KanbanCard } from "@/data/mockData";
-import { ChannelBadge, ChannelIcon } from "@/components/Icons";
+import { ChannelIcon } from "@/components/Icons";
 
 const columns = [
   { key: "pending" as const, label: "PENDING", dotColor: "bg-warning" },
@@ -63,7 +63,7 @@ const Dashboard = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Stats bar — futuristic with neon separators */}
+      {/* Stats bar */}
       <div className="px-6 py-3 border-b border-border flex items-center gap-0 text-sm shrink-0 bg-card/30">
         {[
           { label: "Posts this week", value: "15/35", color: "text-foreground" },
@@ -82,7 +82,7 @@ const Dashboard = () => {
       </div>
 
       {/* Strategy banner */}
-      <div className="mx-6 mt-4 px-4 py-2.5 glass-card rounded-lg flex items-center justify-between shrink-0 scan-line-subtle">
+      <div className="mx-6 mt-4 px-4 py-2.5 glass-card rounded-lg flex items-center justify-between shrink-0">
         <span className="text-sm text-muted-foreground">
           Upgrade to <span className="text-foreground font-medium">Strategy Suite</span> for weekly content pillars
         </span>
@@ -100,8 +100,8 @@ const Dashboard = () => {
               <div key={col.key} className="flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-3 px-1">
                   <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`}>
-                      {col.key === "pending" && <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} animate-ping absolute`} />}
+                    <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} relative`}>
+                      {col.key === "pending" && <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} animate-ping absolute inset-0`} />}
                     </div>
                     <span className="text-[11px] font-display font-semibold tracking-widest text-muted-foreground">{col.label}</span>
                     <span className="text-[11px] font-display text-muted-foreground/40 font-bold">{colCards.length}</span>
@@ -114,21 +114,14 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {colCards.map((card) => (
-                    <div key={card.id} className="glass-card rounded-lg p-3 glow-border group relative overflow-hidden">
-                      {/* Channel watermark in corner */}
-                      <div className="absolute top-2 right-2 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
-                        <ChannelIcon channel={card.channel} className="w-8 h-8" />
-                      </div>
-
+                    <div key={card.id} className="glass-card rounded-lg p-3 glow-border relative">
                       <div className="flex items-center gap-1.5 mb-1.5">
-                        <ChannelIcon channel={card.channel} className="w-3 h-3" />
+                        <span className="text-sm">{card.workerEmoji}</span>
                         <span className="text-xs font-display font-semibold">{card.workerName}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <span className="inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
-                          {card.skill}
-                        </span>
-                      </div>
+                      <span className="inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium mb-2">
+                        {card.skill}
+                      </span>
                       <p className="text-xs text-muted-foreground line-clamp-3 mb-2.5 leading-relaxed">{card.content}</p>
 
                       {card.status === "posted" && card.metrics && (
@@ -154,6 +147,11 @@ const Dashboard = () => {
                           </button>
                         </div>
                       )}
+
+                      {/* Channel icon — bottom right */}
+                      <div className="absolute bottom-2.5 right-2.5 opacity-30">
+                        <ChannelIcon channel={card.channel} className="w-3.5 h-3.5" />
+                      </div>
                     </div>
                   ))}
                 </div>

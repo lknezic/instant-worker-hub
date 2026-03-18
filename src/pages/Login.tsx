@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import logoIcon from "@/assets/logo-icon.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,18 +14,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-grid bg-radial-top relative overflow-hidden">
-      {/* Ambient glow orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/3 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 animate-fade-in">
-        {/* Brand header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center pulse-ring">
-              <span className="text-primary-foreground font-display font-bold text-sm">IW</span>
-            </div>
-          </div>
+          <img src={logoIcon} alt="InstantWorker" className="w-12 h-12 mx-auto mb-4" />
           <h1 className="font-display text-3xl font-bold tracking-tight">
             Instant<span className="text-primary">Worker</span>
           </h1>
@@ -81,7 +76,6 @@ const Login = () => {
           </button>
         </p>
 
-        {/* Trust line */}
         <p className="text-center text-xs text-muted-foreground/60 mt-8">
           No training needed · Works instantly · Your AI team, ready to go
         </p>
