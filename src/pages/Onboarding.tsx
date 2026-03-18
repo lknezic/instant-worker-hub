@@ -5,6 +5,17 @@ import { Check, Pencil } from "lucide-react";
 
 const steps = ["Research", "Review Findings", "Connect & Pick Workers"];
 
+const ShimmerText = ({ text }: { text: string }) => (
+  <span className="inline-flex items-center gap-1.5">
+    <span className="text-shimmer font-semibold">{text}</span>
+    <span className="inline-flex gap-0.5">
+      <span className="w-1 h-1 bg-primary-foreground rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
+      <span className="w-1 h-1 bg-primary-foreground rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
+      <span className="w-1 h-1 bg-primary-foreground rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
+    </span>
+  </span>
+);
+
 const Onboarding = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -20,13 +31,35 @@ const Onboarding = () => {
   });
   const [channelX, setChannelX] = useState(false);
   const [channelReddit, setChannelReddit] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState(0);
 
   const enabledCount = Object.values(workerToggles).filter(Boolean).length;
   const requiredConfirmed = findingsData.filter(f => f.required).every(f => confirmedIds.has(f.id));
 
+  const loadingPhrases = [
+    "Scanning your website",
+    "Analyzing your audience",
+    "Studying competitors",
+    "Building your profile",
+  ];
+
   const handleResearch = () => {
     setLoading(true);
-    setTimeout(() => { setLoading(false); setStep(1); }, 2000);
+    setLoadingPhase(0);
+    const interval = setInterval(() => {
+      setLoadingPhase((p) => {
+        if (p >= loadingPhrases.length - 1) {
+          clearInterval(interval);
+          return p;
+        }
+        return p + 1;
+      });
+    }, 500);
+    setTimeout(() => {
+      clearInterval(interval);
+      setLoading(false);
+      setStep(1);
+    }, 2200);
   };
 
   const confidenceBadge = (c: Finding["confidence"]) => {
@@ -94,14 +127,7 @@ const Onboarding = () => {
               </div>
               <button onClick={handleResearch} disabled={loading} className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all disabled:opacity-50">
                 {loading ? (
-                  <span className="flex items-center justify-center gap-1.5">
-                    Researching
-                    <span className="inline-flex gap-0.5">
-                      <span className="w-1 h-1 bg-primary-foreground rounded-full animate-pulse-dot" style={{ animationDelay: "0s" }} />
-                      <span className="w-1 h-1 bg-primary-foreground rounded-full animate-pulse-dot" style={{ animationDelay: "0.2s" }} />
-                      <span className="w-1 h-1 bg-primary-foreground rounded-full animate-pulse-dot" style={{ animationDelay: "0.4s" }} />
-                    </span>
-                  </span>
+                  <ShimmerText text={loadingPhrases[loadingPhase]} />
                 ) : "Research My Business"}
               </button>
             </div>
