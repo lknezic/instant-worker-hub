@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { workers as allWorkers, workerLearning, activityLog } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { workers as mockWorkers, workerLearning, activityLog, type Worker } from "@/data/mockData";
+import { agents as agentsApi, scorecards } from "@/lib/api";
 import { ChannelIcon, StatusDot } from "@/components/Icons";
 import { Star } from "lucide-react";
 import AnimatedNumber from "@/components/AnimatedNumber";
 import MiniSparkline from "@/components/MiniSparkline";
+import { toast } from "sonner";
 
 // Sparkline data per worker
 const sparklineData: Record<string, number[]> = {
@@ -14,7 +16,51 @@ const sparklineData: Record<string, number[]> = {
   w5: [0, 0, 0, 0, 0, 0],
 };
 
+function getWorkerEmoji(agentName: string): string {
+  const map: Record<string, string> = {
+    "x-tweet-thread-poster": "✍️",
+    "x-engagement-agent": "💬",
+    "reddit-comment-answer": "🗣️",
+    "reddit-flagship-poster": "📝",
+    "content-recycler": "♻️",
+  };
+  return map[agentName] || "🤖";
+}
+
+function getWorkerName(agentName: string): string {
+  const map: Record<string, string> = {
+    "x-tweet-thread-poster": "X Poster",
+    "x-engagement-agent": "X Engagement",
+    "reddit-comment-answer": "Reddit Commenter",
+    "reddit-flagship-poster": "Reddit Flagship",
+    "content-recycler": "Content Recycler",
+  };
+  return map[agentName] || agentName;
+}
+
+function getWorkerChannel(agentName: string): "X" | "Reddit" {
+  if (agentName.startsWith("reddit")) return "Reddit";
+  return "X";
+}
+
+function agentToWorker(agent: any): Worker {
+  return {
+    id: agent.slug || agent.id || agent.agent_name,
+    emoji: getWorkerEmoji(agent.slug || agent.agent_name),
+    name: getWorkerName(agent.slug || agent.agent_name),
+    description: agent.description || "",
+    channel: getWorkerChannel(agent.slug || agent.agent_name),
+    enabled: agent.enabled !== false,
+    status: agent.enabled !== false ? "active" : "paused",
+    postsThisWeek: agent.posts_this_week || 0,
+    avgRating: agent.avg_rating || 0,
+    latestLearning: agent.latest_learning || "",
+    nextPost: agent.next_post || undefined,
+  };
+}
+
 const Workers = () => {
+  const [allWorkers, setAllWorkers] = useState<Worker[]>(mockWorkers);
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"learning" | "activity" | "settings">("learning");
   const [volume, setVolume] = useState(5);
@@ -24,7 +70,43 @@ const Workers = () => {
   const [autonomy, setAutonomy] = useState("L2");
   const [suggestions, setSuggestions] = useState(workerLearning.suggestions);
 
+  // Fetch real agents on mount, fall back to mock data
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await agentsApi.mine();
+        if (!cancelled && data.agents && data.agents.length > 0) {
+          setAllWorkers(data.agents.map(agentToWorker));
+        }
+      } catch {
+        // API not available — keep mock data
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const worker = allWorkers.find((w) => w.id === selectedWorker);
+
+  const handlePause = async (workerId: string) => {
+    setAllWorkers((prev) => prev.map((w) => w.id === workerId ? { ...w, status: "paused" as const, enabled: false } : w));
+    toast("⏸ Worker paused", { duration: 2000 });
+    try {
+      await agentsApi.disable(workerId);
+    } catch {
+      // API not available — local state already updated
+    }
+  };
+
+  const handleResume = async (workerId: string) => {
+    setAllWorkers((prev) => prev.map((w) => w.id === workerId ? { ...w, status: "active" as const, enabled: true } : w));
+    toast("▶️ Worker resumed", { duration: 2000 });
+    try {
+      await agentsApi.enable(workerId);
+    } catch {
+      // API not available — local state already updated
+    }
+  };
 
   const tabs = [
     { key: "learning" as const, label: "Learning" },
@@ -270,9 +352,19 @@ const Workers = () => {
               >
                 Open →
               </button>
-              {w.status === "active" && (
-                <button className="text-[10px] text-muted-foreground hover:text-foreground border border-border rounded px-2 py-0.5 transition-colors">
+              {w.status === "active" ? (
+                <button
+                  onClick={() => handlePause(w.id)}
+                  className="text-[10px] text-muted-foreground hover:text-foreground border border-border rounded px-2 py-0.5 transition-colors"
+                >
                   ⏸ Pause
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleResume(w.id)}
+                  className="text-[10px] text-primary hover:text-primary/80 border border-primary/30 rounded px-2 py-0.5 transition-colors"
+                >
+                  ▶️ Resume
                 </button>
               )}
             </div>

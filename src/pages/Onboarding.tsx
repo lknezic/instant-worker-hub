@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { findings as initialFindings, workers as allWorkers, type Finding } from "@/data/mockData";
 import { Check, Pencil } from "lucide-react";
+import { onboarding, agents as agentsApi, connections as connectionsApi } from "@/lib/api";
 
 const steps = ["Research", "Review Findings", "Connect & Pick Workers"];
 
@@ -15,6 +16,27 @@ const ShimmerText = ({ text }: { text: string }) => (
     </span>
   </span>
 );
+
+/* Map API research response to Finding[] format */
+function apiProfileToFindings(profile: Record<string, unknown>): Finding[] {
+  const str = (v: unknown) => (typeof v === "string" ? v : Array.isArray(v) ? v.join(", ") : String(v ?? ""));
+  const conf = (v: unknown): Finding["confidence"] => (v ? "confident" : "missing");
+  const needsReview = (v: unknown): Finding["confidence"] => (v ? "needs-review" : "missing");
+
+  return [
+    { id: "f1", emoji: "\u{1F3E2}", label: "Business Name", value: str(profile.business_name), confidence: conf(profile.business_name), required: true },
+    { id: "f2", emoji: "\u{1F4DD}", label: "Description", value: str(profile.description), confidence: conf(profile.description), required: true },
+    { id: "f3", emoji: "\u{1F3AF}", label: "Target Audience", value: str(profile.target_audience), confidence: needsReview(profile.target_audience), required: true },
+    { id: "f4", emoji: "\u{1F4A1}", label: "Topics", value: str(profile.topics), confidence: conf(profile.topics) },
+    { id: "f5", emoji: "\u{1F5E3}\uFE0F", label: "Voice & Tone", value: str(profile.voice), confidence: needsReview(profile.voice) },
+    { id: "f6", emoji: "\u{1F4B0}", label: "Offers", value: str(profile.offers), confidence: needsReview(profile.offers) },
+    { id: "f7", emoji: "\u{1F3C1}", label: "Competitors", value: str(profile.competitors), confidence: conf(profile.competitors) },
+    { id: "f8", emoji: "\u{1F624}", label: "Pain Points", value: str(profile.pain_points), confidence: needsReview(profile.pain_points) },
+    { id: "f9", emoji: "\u26A1", label: "Features", value: str(profile.features), confidence: conf(profile.features) },
+    { id: "f10", emoji: "\u{1F6AB}", label: "Forbidden Topics", value: str(profile.forbidden_topics), confidence: profile.forbidden_topics ? "confident" : "missing", required: true },
+    { id: "f11", emoji: "\u2696\uFE0F", label: "Regulated Industry", value: str(profile.regulated), confidence: profile.regulated ? "confident" : "missing" },
+  ];
+}
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -33,6 +55,7 @@ const Onboarding = () => {
   const [channelReddit, setChannelReddit] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
+  const [researchError, setResearchError] = useState("");
 
   const enabledCount = Object.values(workerToggles).filter(Boolean).length;
   const requiredConfirmed = findingsData.filter(f => f.required).every(f => confirmedIds.has(f.id));
@@ -44,9 +67,11 @@ const Onboarding = () => {
     "Building your profile",
   ];
 
-  const handleResearch = () => {
+  const handleResearch = async () => {
     setLoading(true);
     setLoadingPhase(0);
+    setResearchError("");
+
     const interval = setInterval(() => {
       setLoadingPhase((p) => {
         if (p >= loadingPhrases.length - 1) {
@@ -56,11 +81,41 @@ const Onboarding = () => {
         return p + 1;
       });
     }, 500);
-    setTimeout(() => {
+
+    try {
+      const res = await onboarding.research({
+        website_url: website,
+        x_handle: xHandle || undefined,
+        description: whatYouSell || undefined,
+      }) as Record<string, unknown>;
+
       clearInterval(interval);
       setLoading(false);
+
+      // Map API response to findings format
+      const profile = (res.profile ?? res) as Record<string, unknown>;
+      const mapped = apiProfileToFindings(profile);
+      setFindings(mapped);
       goToStep(1);
-    }, 2200);
+    } catch (err: unknown) {
+      clearInterval(interval);
+      setResearchError(err instanceof Error ? err.message : "Research failed — using sample data");
+
+      // Fall back to mock data after a delay to let loading animation finish
+      setTimeout(() => {
+        setLoading(false);
+        goToStep(1);
+      }, 800);
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      await onboarding.complete();
+    } catch {
+      // Backend not running — continue anyway
+    }
+    navigate("/app");
   };
 
   const goToStep = (newStep: number) => {
@@ -69,9 +124,9 @@ const Onboarding = () => {
   };
 
   const confidenceBadge = (c: Finding["confidence"]) => {
-    if (c === "confident") return { label: "🟢 Confident", className: "bg-success/15 text-success" };
-    if (c === "needs-review") return { label: "🟡 Needs review", className: "bg-warning/15 text-warning" };
-    return { label: "🔴 Missing", className: "bg-destructive/15 text-destructive" };
+    if (c === "confident") return { label: "\u{1F7E2} Confident", className: "bg-success/15 text-success" };
+    if (c === "needs-review") return { label: "\u{1F7E1} Needs review", className: "bg-warning/15 text-warning" };
+    return { label: "\u{1F534} Missing", className: "bg-destructive/15 text-destructive" };
   };
 
   const updateFinding = (id: string, value: string) => {
@@ -136,6 +191,9 @@ const Onboarding = () => {
                 <label className="block text-sm font-medium mb-1.5">What do you sell? <span className="text-muted-foreground">(optional)</span></label>
                 <textarea value={whatYouSell} onChange={(e) => setWhatYouSell(e.target.value)} placeholder="Describe your product or service..." rows={3} className={`${inputClass} resize-none`} />
               </div>
+              {researchError && (
+                <p className="text-sm text-warning">{researchError}</p>
+              )}
               <button onClick={handleResearch} disabled={loading} className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all disabled:opacity-50">
                 {loading ? (
                   <ShimmerText text={loadingPhrases[loadingPhase]} />
@@ -253,9 +311,9 @@ const Onboarding = () => {
 
             <div className="glass-card rounded-xl p-4 mb-6 space-y-3">
               {[
-                { label: "X (Twitter)", icon: "𝕏", connected: channelX, toggle: () => setChannelX(!channelX) },
-                { label: "Reddit", icon: "🤖", connected: channelReddit, toggle: () => setChannelReddit(!channelReddit) },
-                { label: "Email", icon: "📧", connected: false, toggle: () => {}, disabled: true },
+                { label: "X (Twitter)", icon: "\u{1D54F}", connected: channelX, toggle: () => setChannelX(!channelX) },
+                { label: "Reddit", icon: "\u{1F916}", connected: channelReddit, toggle: () => setChannelReddit(!channelReddit) },
+                { label: "Email", icon: "\u{1F4E7}", connected: false, toggle: () => {}, disabled: true },
               ].map((ch) => (
                 <div key={ch.label} className={`flex items-center justify-between ${ch.disabled ? "opacity-40" : ""}`}>
                   <div className="flex items-center gap-3">
@@ -314,8 +372,8 @@ const Onboarding = () => {
               </div>
             </div>
 
-            <button onClick={() => navigate("/app")} className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all">
-              Start Working →
+            <button onClick={handleComplete} className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all">
+              Start Working
             </button>
           </div>
         )}

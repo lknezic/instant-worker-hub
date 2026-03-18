@@ -1,6 +1,8 @@
+import { type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import Login from "./pages/Login";
 import Pricing from "./pages/Pricing";
 import Onboarding from "./pages/Onboarding";
@@ -14,17 +16,25 @@ import { WorkflowProvider } from "./contexts/WorkflowContext";
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <div className="h-screen flex items-center justify-center bg-background text-foreground">Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <WorkflowProvider>
       <BrowserRouter>
+        <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/app" element={<AppLayout />}>
+          <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<TodayWorkflow />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="workers" element={<Workers />} />
@@ -34,6 +44,7 @@ const App = () => (
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
+        </AuthProvider>
       </BrowserRouter>
       </WorkflowProvider>
     </TooltipProvider>

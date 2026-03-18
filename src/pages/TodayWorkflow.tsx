@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { workflowQuestions, reviewCards as initialReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
+import { workflowQuestions, reviewCards as mockReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
+import { events as eventsApi } from "@/lib/api";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
@@ -21,6 +22,43 @@ const bestPost = {
   workerName: "X Poster",
   workerEmoji: "✍️",
 };
+
+function getWorkerEmoji(agentName: string): string {
+  const map: Record<string, string> = {
+    "x-tweet-thread-poster": "✍️",
+    "x-engagement-agent": "💬",
+    "reddit-comment-answer": "🗣️",
+    "reddit-flagship-poster": "📝",
+    "content-recycler": "♻️",
+  };
+  return map[agentName] || "🤖";
+}
+
+function getWorkerName(agentName: string): string {
+  const map: Record<string, string> = {
+    "x-tweet-thread-poster": "X Poster",
+    "x-engagement-agent": "X Engagement",
+    "reddit-comment-answer": "Reddit Commenter",
+    "reddit-flagship-poster": "Reddit Flagship",
+    "content-recycler": "Content Recycler",
+  };
+  return map[agentName] || agentName;
+}
+
+function eventToCard(ev: any): ReviewCard {
+  return {
+    id: String(ev.id),
+    workerId: ev.agent_name,
+    workerEmoji: getWorkerEmoji(ev.agent_name),
+    workerName: getWorkerName(ev.agent_name),
+    channel: ev.channel === "x" ? "X" : "Reddit",
+    skill: ev.skill_name || "unknown",
+    content: ev.final_text || ev.draft_text || "",
+    status: ev.review_status as any,
+    rating: ev.review_rating || 0,
+    metrics: ev.impressions ? { views: ev.impressions, saves: ev.bookmarks || 0, comments: ev.replies || 0 } : undefined,
+  };
+}
 
 const Confetti = () => {
   const colors = [
@@ -62,13 +100,29 @@ const Confetti = () => {
 const TodayWorkflow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
-  const [reviewCards, setReviewCards] = useState<ReviewCard[]>(initialReviewCards);
+  const [reviewCards, setReviewCards] = useState<ReviewCard[]>(mockReviewCards);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [editingCard, setEditingCard] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [done, setDone] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const { setTodayComplete } = useWorkflow();
+
+  // Fetch pending events from API, fall back to mock data
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await eventsApi.list({ review_status: "pending", limit: 50 });
+        if (!cancelled && data.events && data.events.length > 0) {
+          setReviewCards(data.events.map(eventToCard));
+        }
+      } catch {
+        // API not available — keep mock data
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const pendingReview = reviewCards.filter((c) => c.status === "pending");
   const allQuestionsAnswered = answeredQuestions.size >= workflowQuestions.length;
@@ -79,18 +133,30 @@ const TodayWorkflow = () => {
     setAnsweredQuestions((prev) => new Set(prev).add(qId));
   };
 
-  const handleReviewAction = useCallback((cardId: string, action: "approved" | "rejected") => {
+  const handleReviewAction = useCallback(async (cardId: string, action: "approved" | "rejected") => {
     setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, status: action } : c));
     setCurrentReviewIndex((i) => Math.min(i + 1, reviewCards.length - 1));
     setEditingCard(null);
     toast(action === "approved" ? "✅ Post approved" : "❌ Post rejected", {
       duration: 2000,
     });
+
+    try {
+      await eventsApi.update(cardId, { review_status: action });
+    } catch {
+      // API not available — local state already updated
+    }
   }, [reviewCards.length]);
 
-  const handleRate = useCallback((cardId: string, rating: number) => {
+  const handleRate = useCallback(async (cardId: string, rating: number) => {
     setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, rating } : c));
     toast(`⭐ Rated ${rating}/10`, { duration: 1500 });
+
+    try {
+      await eventsApi.rate(cardId, rating);
+    } catch {
+      // API not available — local state already updated
+    }
   }, []);
 
   const handleEdit = (card: ReviewCard) => {
@@ -98,15 +164,27 @@ const TodayWorkflow = () => {
     setEditContent(card.content);
   };
 
-  const handleSaveEdit = (cardId: string) => {
+  const handleSaveEdit = async (cardId: string) => {
     setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, content: editContent } : c));
     setEditingCard(null);
     toast("✏️ Post updated", { duration: 1500 });
+
+    try {
+      await eventsApi.update(cardId, { review_edited_text: editContent });
+    } catch {
+      // API not available — local state already updated
+    }
   };
 
-  const handleSkip = useCallback((cardId: string) => {
+  const handleSkip = useCallback(async (cardId: string) => {
     setReviewCards(prev => prev.map(c => c.id === cardId ? { ...c, status: "approved" } : c));
     toast("⏭ Skipped", { duration: 1500 });
+
+    try {
+      await eventsApi.update(cardId, { review_status: "approved" });
+    } catch {
+      // API not available — local state already updated
+    }
   }, []);
 
   const nextStep = () => {

@@ -1,11 +1,60 @@
-import { useState } from "react";
-import { invoices } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { invoices as mockInvoices } from "@/data/mockData";
+import { settings as settingsApi } from "@/lib/api";
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 
 const tabsList = ["Business Profile", "Voice & Compliance", "Channels", "Content", "Billing"];
 
+// Shared settings state loaded from API
+interface SettingsData {
+  business_name?: string;
+  website?: string;
+  description?: string;
+  target_audience?: string;
+  ninety_day_outcome?: string;
+  current_offers?: string;
+  voice_tone?: string;
+  forbidden_topics?: string[];
+  required_disclaimers?: string[];
+  regulated_industry?: boolean;
+  topics?: string[];
+  content_mix?: Record<string, number>;
+  skills?: string[];
+}
+
 const Settings = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [settingsData, setSettingsData] = useState<SettingsData>({});
+  const [loaded, setLoaded] = useState(false);
+
+  // Fetch settings from API on mount, fall back to defaults
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await settingsApi.get() as any;
+        if (!cancelled && data) {
+          setSettingsData(data);
+        }
+      } catch {
+        // API not available — keep defaults
+      }
+      if (!cancelled) setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const saveSettings = async (updates: Partial<SettingsData>) => {
+    const merged = { ...settingsData, ...updates };
+    setSettingsData(merged);
+    try {
+      await settingsApi.update(updates);
+      toast("✅ Settings saved", { duration: 2000 });
+    } catch {
+      toast("Settings saved locally (backend offline)", { duration: 2000 });
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -28,10 +77,10 @@ const Settings = () => {
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-xl animate-fade-in">
-          {activeTab === 0 && <BusinessProfile />}
-          {activeTab === 1 && <VoiceCompliance />}
+          {activeTab === 0 && <BusinessProfile data={settingsData} onSave={saveSettings} />}
+          {activeTab === 1 && <VoiceCompliance data={settingsData} onSave={saveSettings} />}
           {activeTab === 2 && <Channels />}
-          {activeTab === 3 && <ContentTab />}
+          {activeTab === 3 && <ContentTab data={settingsData} onSave={saveSettings} />}
           {activeTab === 4 && <Billing />}
         </div>
       </div>
@@ -41,13 +90,13 @@ const Settings = () => {
 
 const inputClass = "w-full bg-background/50 border border-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all";
 
-const Input = ({ label, defaultValue, multiline }: { label: string; defaultValue: string; multiline?: boolean }) => (
+const ControlledInput = ({ label, value, onChange, multiline }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean }) => (
   <div>
     <label className="block text-sm font-medium mb-1.5">{label}</label>
     {multiline ? (
-      <textarea defaultValue={defaultValue} rows={3} className={`${inputClass} resize-none`} />
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} className={`${inputClass} resize-none`} />
     ) : (
-      <input defaultValue={defaultValue} className={inputClass} />
+      <input value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} />
     )}
   </div>
 );
@@ -61,19 +110,28 @@ const Toggle = ({ on, onToggle }: { on: boolean; onToggle: () => void }) => (
   </button>
 );
 
-const TagInput = ({ tags: initialTags, placeholder }: { tags: string[]; placeholder?: string }) => {
+const TagInput = ({ tags: initialTags, placeholder, onChange }: { tags: string[]; placeholder?: string; onChange?: (tags: string[]) => void }) => {
   const [tags, setTags] = useState(initialTags);
   const [input, setInput] = useState("");
 
+  // Sync when initial tags change from API
+  useEffect(() => {
+    setTags(initialTags);
+  }, [initialTags]);
+
   const addTag = () => {
     if (input.trim() && !tags.includes(input.trim())) {
-      setTags([...tags, input.trim()]);
+      const next = [...tags, input.trim()];
+      setTags(next);
       setInput("");
+      onChange?.(next);
     }
   };
 
   const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+    const next = tags.filter((t) => t !== tag);
+    setTags(next);
+    onChange?.(next);
   };
 
   return (
@@ -95,36 +153,65 @@ const TagInput = ({ tags: initialTags, placeholder }: { tags: string[]; placehol
   );
 };
 
-const SaveBtn = () => (
-  <button className="bg-primary text-primary-foreground text-sm font-display font-semibold rounded-lg px-5 py-2.5 btn-glow hover:opacity-90 transition-all">
-    Save
-  </button>
-);
+const BusinessProfile = ({ data, onSave }: { data: SettingsData; onSave: (u: Partial<SettingsData>) => void }) => {
+  const [name, setName] = useState(data.business_name || "Acme SaaS Co");
+  const [website, setWebsite] = useState(data.website || "https://acmesaas.com");
+  const [description, setDescription] = useState(data.description || "AI-powered marketing automation for B2B SaaS companies");
+  const [audience, setAudience] = useState(data.target_audience || "B2B SaaS founders and marketing leaders");
+  const [outcome, setOutcome] = useState(data.ninety_day_outcome || "Establish thought leadership and generate 50 qualified leads per month");
+  const [offers, setOffers] = useState(data.current_offers || "14-day free trial, annual discount");
 
-const BusinessProfile = () => (
-  <div className="space-y-4">
-    <Input label="Business Name" defaultValue="Acme SaaS Co" />
-    <Input label="Website" defaultValue="https://acmesaas.com" />
-    <Input label="Description" defaultValue="AI-powered marketing automation for B2B SaaS companies" multiline />
-    <Input label="Target Audience" defaultValue="B2B SaaS founders and marketing leaders" />
-    <Input label="90-Day Outcome" defaultValue="Establish thought leadership and generate 50 qualified leads per month" multiline />
-    <Input label="Current Offers" defaultValue="14-day free trial, annual discount" />
-    <SaveBtn />
-  </div>
-);
+  // Sync from API when data loads
+  useEffect(() => {
+    if (data.business_name) setName(data.business_name);
+    if (data.website) setWebsite(data.website);
+    if (data.description) setDescription(data.description);
+    if (data.target_audience) setAudience(data.target_audience);
+    if (data.ninety_day_outcome) setOutcome(data.ninety_day_outcome);
+    if (data.current_offers) setOffers(data.current_offers);
+  }, [data]);
 
-const VoiceCompliance = () => {
-  const [regulated, setRegulated] = useState(false);
   return (
     <div className="space-y-4">
-      <Input label="Voice & Tone" defaultValue="Professional but approachable, data-driven, slightly contrarian" multiline />
+      <ControlledInput label="Business Name" value={name} onChange={setName} />
+      <ControlledInput label="Website" value={website} onChange={setWebsite} />
+      <ControlledInput label="Description" value={description} onChange={setDescription} multiline />
+      <ControlledInput label="Target Audience" value={audience} onChange={setAudience} />
+      <ControlledInput label="90-Day Outcome" value={outcome} onChange={setOutcome} multiline />
+      <ControlledInput label="Current Offers" value={offers} onChange={setOffers} />
+      <button
+        onClick={() => onSave({ business_name: name, website, description, target_audience: audience, ninety_day_outcome: outcome, current_offers: offers })}
+        className="bg-primary text-primary-foreground text-sm font-display font-semibold rounded-lg px-5 py-2.5 btn-glow hover:opacity-90 transition-all"
+      >
+        Save
+      </button>
+    </div>
+  );
+};
+
+const VoiceCompliance = ({ data, onSave }: { data: SettingsData; onSave: (u: Partial<SettingsData>) => void }) => {
+  const [voice, setVoice] = useState(data.voice_tone || "Professional but approachable, data-driven, slightly contrarian");
+  const [forbidden, setForbidden] = useState(data.forbidden_topics || ["Politics", "Religion", "Competitor bashing"]);
+  const [disclaimers, setDisclaimers] = useState(data.required_disclaimers || ["Not financial advice", "Results may vary"]);
+  const [regulated, setRegulated] = useState(data.regulated_industry || false);
+
+  useEffect(() => {
+    if (data.voice_tone) setVoice(data.voice_tone);
+    if (data.forbidden_topics) setForbidden(data.forbidden_topics);
+    if (data.required_disclaimers) setDisclaimers(data.required_disclaimers);
+    if (data.regulated_industry !== undefined) setRegulated(data.regulated_industry);
+  }, [data]);
+
+  return (
+    <div className="space-y-4">
+      <ControlledInput label="Voice & Tone" value={voice} onChange={setVoice} multiline />
       <div>
         <label className="block text-sm font-medium mb-1.5">Forbidden Topics</label>
-        <TagInput tags={["Politics", "Religion", "Competitor bashing"]} placeholder="Add forbidden topic..." />
+        <TagInput tags={forbidden} placeholder="Add forbidden topic..." onChange={setForbidden} />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1.5">Required Disclaimers</label>
-        <TagInput tags={["Not financial advice", "Results may vary"]} placeholder="Add disclaimer..." />
+        <TagInput tags={disclaimers} placeholder="Add disclaimer..." onChange={setDisclaimers} />
       </div>
       <div className="flex items-center justify-between glass-card rounded-lg p-4">
         <div>
@@ -133,7 +220,12 @@ const VoiceCompliance = () => {
         </div>
         <Toggle on={regulated} onToggle={() => setRegulated(!regulated)} />
       </div>
-      <SaveBtn />
+      <button
+        onClick={() => onSave({ voice_tone: voice, forbidden_topics: forbidden, required_disclaimers: disclaimers, regulated_industry: regulated })}
+        className="bg-primary text-primary-foreground text-sm font-display font-semibold rounded-lg px-5 py-2.5 btn-glow hover:opacity-90 transition-all"
+      >
+        Save
+      </button>
     </div>
   );
 };
@@ -210,14 +302,21 @@ const Channels = () => {
   );
 };
 
-const ContentTab = () => {
-  const [mixes, setMixes] = useState({
+const ContentTab = ({ data, onSave }: { data: SettingsData; onSave: (u: Partial<SettingsData>) => void }) => {
+  const defaultTopics = ["Growth marketing", "Content strategy", "B2B sales", "Product-led growth", "SaaS metrics", "Copywriting", "Email marketing", "SEO", "Social media", "Analytics"];
+  const [topics, setTopics] = useState(data.topics || defaultTopics);
+  const [mixes, setMixes] = useState(data.content_mix || {
     educational: 30, story: 25, opinion: 15, market: 10, engagement: 15, promo: 5,
   });
 
+  useEffect(() => {
+    if (data.topics) setTopics(data.topics);
+    if (data.content_mix) setMixes(data.content_mix);
+  }, [data]);
+
   const total = Object.values(mixes).reduce((a, b) => a + b, 0);
 
-  const updateMix = (key: keyof typeof mixes, value: number) => {
+  const updateMix = (key: string, value: number) => {
     setMixes((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -226,8 +325,9 @@ const ContentTab = () => {
       <div>
         <label className="block text-sm font-medium mb-1.5">Topics</label>
         <TagInput
-          tags={["Growth marketing", "Content strategy", "B2B sales", "Product-led growth", "SaaS metrics", "Copywriting", "Email marketing", "SEO", "Social media", "Analytics"]}
+          tags={topics}
           placeholder="Add topic..."
+          onChange={setTopics}
         />
       </div>
       <div className="space-y-3">
@@ -240,23 +340,23 @@ const ContentTab = () => {
           </span>
         </div>
         {([
-          { key: "educational" as const, label: "Educational" },
-          { key: "story" as const, label: "Story" },
-          { key: "opinion" as const, label: "Opinion" },
-          { key: "market" as const, label: "Market Commentary" },
-          { key: "engagement" as const, label: "Engagement" },
-          { key: "promo" as const, label: "Promo" },
+          { key: "educational", label: "Educational" },
+          { key: "story", label: "Story" },
+          { key: "opinion", label: "Opinion" },
+          { key: "market", label: "Market Commentary" },
+          { key: "engagement", label: "Engagement" },
+          { key: "promo", label: "Promo" },
         ]).map((s) => (
           <div key={s.key}>
             <div className="flex justify-between text-sm mb-1.5">
               <span className="text-muted-foreground">{s.label}</span>
-              <span className="font-display font-medium">{mixes[s.key]}%</span>
+              <span className="font-display font-medium">{mixes[s.key] || 0}%</span>
             </div>
             <input
               type="range"
               min={0}
               max={100}
-              value={mixes[s.key]}
+              value={mixes[s.key] || 0}
               onChange={(e) => updateMix(s.key, +e.target.value)}
               className="w-full accent-primary"
             />
@@ -274,7 +374,12 @@ const ContentTab = () => {
           ))}
         </div>
       </div>
-      <SaveBtn />
+      <button
+        onClick={() => onSave({ topics, content_mix: mixes })}
+        className="bg-primary text-primary-foreground text-sm font-display font-semibold rounded-lg px-5 py-2.5 btn-glow hover:opacity-90 transition-all"
+      >
+        Save
+      </button>
     </div>
   );
 };
@@ -326,7 +431,7 @@ const Billing = () => (
     <div>
       <h3 className="font-display font-semibold text-sm mb-3">Invoices</h3>
       <div className="space-y-2">
-        {invoices.map((inv) => (
+        {mockInvoices.map((inv) => (
           <div key={inv.id} className="glass-card rounded-lg px-4 py-3 flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{inv.date}</span>
             <span className="font-display font-medium">{inv.amount}</span>
