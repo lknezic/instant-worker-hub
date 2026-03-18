@@ -19,7 +19,7 @@ const Login = () => {
 
       <div className="w-full max-w-md relative z-10 animate-fade-in">
         <div className="text-center mb-10">
-          <img src={logoIcon} alt="InstantWorker" className="w-12 h-12 mx-auto mb-4" />
+          <img src={logoIcon} alt="InstantWorker" className="w-12 h-12 mx-auto mb-4 invert" />
           <h1 className="font-display text-3xl font-bold tracking-tight">
             Instant<span className="text-primary">Worker</span>
           </h1>

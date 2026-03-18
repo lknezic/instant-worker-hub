@@ -31,7 +31,7 @@ const AppLayout = () => {
         {/* Brand */}
         <div className="p-5 border-b border-border">
           <button onClick={() => navigate("/app")} className="text-left flex items-center gap-2.5">
-            <img src={logoIcon} alt="InstantWorker" className="w-7 h-7" />
+            <img src={logoIcon} alt="InstantWorker" className="w-7 h-7 invert" />
             <div>
               <h1 className="font-display text-sm font-semibold tracking-tight leading-none">
                 Instant<span className="text-primary">Worker</span>
