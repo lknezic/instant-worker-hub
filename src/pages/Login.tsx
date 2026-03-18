@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoIcon from "@/assets/logo-icon.png";
+import { Check } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -48,9 +49,11 @@ const Login = () => {
             </form>
           ) : (
             <div className="text-center py-6 animate-scale-in">
-              <p className="text-2xl mb-2">✉️</p>
-              <p className="font-semibold">Check your email</p>
-              <p className="text-sm text-muted-foreground mt-1">We sent a login link to <span className="text-foreground">{email}</span></p>
+              <div className="w-14 h-14 rounded-full bg-success/15 flex items-center justify-center mx-auto mb-3 pulse-ring">
+                <Check className="w-7 h-7 text-success" />
+              </div>
+              <p className="font-semibold">Check your email for a login link ✓</p>
+              <p className="text-sm text-muted-foreground mt-1">We sent it to <span className="text-foreground">{email}</span></p>
             </div>
           )}
 
@@ -64,12 +67,18 @@ const Login = () => {
           </div>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-5">
-          Don't have an account?{" "}
+        <div className="text-center text-sm text-muted-foreground mt-5 space-x-4">
+          <span>
+            Don't have an account?{" "}
+            <button onClick={() => navigate("/onboarding")} className="text-primary hover:underline font-medium">
+              Start free trial
+            </button>
+          </span>
+          <span>·</span>
           <button onClick={() => navigate("/pricing")} className="text-primary hover:underline font-medium">
             View pricing →
           </button>
-        </p>
+        </div>
       </div>
     </div>
   );

@@ -144,6 +144,9 @@ const Onboarding = () => {
               {findingsData.map((f, i) => {
                 const badge = confidenceBadge(f.confidence);
                 const isConfirmed = confirmedIds.has(f.id);
+                const isTopics = f.id === "f4";
+                const isRegulated = f.id === "f11";
+
                 return (
                   <div
                     key={f.id}
@@ -161,7 +164,28 @@ const Onboarding = () => {
                       </span>
                     </div>
 
-                    {editingId === f.id ? (
+                    {/* Topics — show as tags */}
+                    {isTopics && editingId !== f.id ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {f.value.split(", ").filter(Boolean).map((topic) => (
+                          <span key={topic} className="text-xs bg-card border border-border px-2 py-0.5 rounded-md font-medium text-muted-foreground">
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    ) : isRegulated && editingId !== f.id ? (
+                      /* Regulated Industry — yes/no toggle */
+                      <div className="flex items-center gap-3">
+                        <Toggle
+                          on={f.value === "yes"}
+                          onToggle={() => {
+                            updateFinding(f.id, f.value === "yes" ? "no" : "yes");
+                            confirmFinding(f.id);
+                          }}
+                        />
+                        <span className="text-sm text-muted-foreground">{f.value === "yes" ? "Yes" : "No"}</span>
+                      </div>
+                    ) : editingId === f.id ? (
                       <div>
                         <textarea
                           autoFocus
@@ -173,10 +197,10 @@ const Onboarding = () => {
                         />
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground leading-relaxed">{f.value || <span className="italic">Not found</span>}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{f.value || <span className="italic">Not found — please fill in</span>}</p>
                     )}
 
-                    {editingId !== f.id && (
+                    {editingId !== f.id && !isRegulated && (
                       <div className="flex gap-3 mt-3">
                         {!isConfirmed && (
                           <button onClick={() => confirmFinding(f.id)} className="text-xs text-success hover:text-success/80 font-medium transition-colors flex items-center gap-1">
@@ -190,6 +214,9 @@ const Onboarding = () => {
                           <span className="text-xs text-success font-medium flex items-center gap-1"><Check className="w-3 h-3" /> Confirmed</span>
                         )}
                       </div>
+                    )}
+                    {isRegulated && isConfirmed && (
+                      <span className="text-xs text-success font-medium flex items-center gap-1 mt-2"><Check className="w-3 h-3" /> Confirmed</span>
                     )}
                   </div>
                 );
