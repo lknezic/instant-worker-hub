@@ -37,9 +37,13 @@ const Login = () => {
         return;
       }
     } catch {
-      // Backend not running — fall through to navigate without token
+      // Verify failed — use dev mode bypass
     }
-    navigate("/app");
+    // Set a dummy token so ProtectedRoute and API calls work
+    // Backend with IW_AUTH_DISABLED=true accepts any token via DEV_USER
+    const { setToken } = await import("@/lib/api");
+    setToken("dev-mode-token");
+    window.location.href = "/app";
   };
 
   return (
