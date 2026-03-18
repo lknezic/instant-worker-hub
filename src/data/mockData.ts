@@ -16,6 +16,7 @@ export interface KanbanCard {
   workerId: string;
   workerEmoji: string;
   workerName: string;
+  channel: "X" | "Reddit";
   skill: string;
   content: string;
   status: "pending" | "approved" | "posted" | "rejected";
