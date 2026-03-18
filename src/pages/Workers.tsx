@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { workers as allWorkers, workerLearning, activityLog } from "@/data/mockData";
+import { ChannelBadge, ChannelIcon, StatusDot } from "@/components/Icons";
 
 const Workers = () => {
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
@@ -37,9 +38,13 @@ const Workers = () => {
         <div className="px-6 py-3 border-b border-border flex items-center gap-4 shrink-0 bg-card/30">
           <button onClick={() => setSelectedWorker(null)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back</button>
           <div className="w-px h-4 bg-border" />
-          <span className="text-lg">{worker.emoji}</span>
+          <ChannelIcon channel={worker.channel} className="w-4 h-4" />
           <span className="font-display font-semibold text-sm">{worker.name}</span>
+          <StatusDot status={worker.status} />
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(worker.status)}`}>{worker.status}</span>
+          <div className="ml-auto">
+            <ChannelBadge channel={worker.channel} />
+          </div>
         </div>
 
         <div className="px-6 pt-4 border-b border-border shrink-0">
@@ -61,9 +66,9 @@ const Workers = () => {
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === "learning" && (
             <div className="max-w-2xl space-y-8">
-              <Section title="Doing More Of" items={workerLearning.doingMore} color="text-success" />
-              <Section title="Stopped Doing" items={workerLearning.stoppedDoing} color="text-destructive" />
-              <Section title="Your Feedback" items={workerLearning.feedback} color="text-info" />
+              <Section title="Doing More Of" items={workerLearning.doingMore} color="text-success" icon="↗" />
+              <Section title="Stopped Doing" items={workerLearning.stoppedDoing} color="text-destructive" icon="↘" />
+              <Section title="Your Feedback" items={workerLearning.feedback} color="text-info" icon="◆" />
 
               <div>
                 <h3 className="font-display font-semibold text-sm mb-3">Suggestions</h3>
@@ -84,15 +89,28 @@ const Workers = () => {
 
               <div>
                 <h3 className="font-display font-semibold text-sm mb-3">Improvement Timeline</h3>
-                <div className="glass-card rounded-lg p-4 text-sm">
-                  <div className="flex items-center gap-3">
-                    <span className="text-muted-foreground">Week 1: 1.2%</span>
-                    <span className="text-muted-foreground/40">→</span>
-                    <span className="text-muted-foreground">Week 2: 1.8%</span>
-                    <span className="text-success text-xs font-medium">(+50%)</span>
-                    <span className="text-muted-foreground/40">→</span>
-                    <span className="text-foreground font-medium">Week 3: 2.3%</span>
-                    <span className="text-success text-xs font-medium">(+28%)</span>
+                <div className="glass-card rounded-lg p-4">
+                  <div className="flex items-center gap-4">
+                    {[
+                      { week: "W1", val: "1.2%", delta: null },
+                      { week: "W2", val: "1.8%", delta: "+50%" },
+                      { week: "W3", val: "2.3%", delta: "+28%" },
+                    ].map((w, i) => (
+                      <div key={w.week} className="flex items-center gap-3">
+                        {i > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-6 h-px bg-primary/30" />
+                            <span className="text-primary text-[10px] font-display font-bold">→</span>
+                            <div className="w-6 h-px bg-primary/30" />
+                          </div>
+                        )}
+                        <div className="text-center">
+                          <span className="text-[10px] text-muted-foreground font-display block">{w.week}</span>
+                          <span className={`text-sm font-display font-bold ${i === 2 ? "text-primary" : "text-foreground"}`}>{w.val}</span>
+                          {w.delta && <span className="text-success text-[10px] font-semibold block">{w.delta}</span>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -106,11 +124,11 @@ const Workers = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(a.status)}`}>{a.status}</span>
-                      <span className="text-xs text-muted-foreground">{a.date}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{a.date}</span>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{a.content}</p>
                     {a.metrics && (
-                      <p className="text-[11px] text-muted-foreground/70 mt-1.5">
+                      <p className="text-[11px] text-muted-foreground/70 mt-1.5 font-mono">
                         👁 {a.metrics.views.toLocaleString()} · 🔖 {a.metrics.saves} · 💬 {a.metrics.comments}
                       </p>
                     )}
@@ -175,19 +193,36 @@ const Workers = () => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {allWorkers.map((w, i) => (
-          <div key={w.id} className="glass-card rounded-xl p-5 glow-border animate-fade-in" style={{ animationDelay: `${i * 0.06}s` }}>
-            <div className="flex items-center justify-between mb-3">
+          <div key={w.id} className="glass-card rounded-xl p-5 glow-border animate-fade-in group relative overflow-hidden" style={{ animationDelay: `${i * 0.06}s` }}>
+            {/* Large channel watermark */}
+            <div className="absolute -bottom-3 -right-3 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
+              <ChannelIcon channel={w.channel} className="w-24 h-24" />
+            </div>
+
+            <div className="flex items-center justify-between mb-3 relative">
               <div className="flex items-center gap-2.5">
-                <span className="text-xl">{w.emoji}</span>
-                <span className="font-display font-semibold">{w.name}</span>
+                <div className="relative">
+                  <span className="text-xl">{w.emoji}</span>
+                  <div className="absolute -bottom-0.5 -right-0.5">
+                    <ChannelIcon channel={w.channel} className="w-3 h-3" />
+                  </div>
+                </div>
+                <div>
+                  <span className="font-display font-semibold block leading-tight">{w.name}</span>
+                  <ChannelBadge channel={w.channel} />
+                </div>
               </div>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(w.status)}`}>{w.status}</span>
+              <div className="flex items-center gap-2">
+                <StatusDot status={w.status} />
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(w.status)}`}>{w.status}</span>
+              </div>
             </div>
+
             <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-              <span>{w.postsThisWeek} posts this week</span>
-              <span className="text-primary font-medium">★ {w.avgRating}/10</span>
+              <span className="font-mono">{w.postsThisWeek} posts</span>
+              <span className="text-primary font-display font-semibold">★ {w.avgRating}</span>
             </div>
-            <p className="text-xs text-muted-foreground/80 italic leading-relaxed mb-4">"{w.latestLearning}"</p>
+            <p className="text-xs text-muted-foreground/80 italic leading-relaxed mb-4 border-l-2 border-primary/20 pl-2.5">"{w.latestLearning}"</p>
             <button
               onClick={() => { setSelectedWorker(w.id); setActiveTab("learning"); }}
               className="text-xs text-primary hover:text-primary/80 font-display font-semibold transition-colors"
@@ -201,9 +236,12 @@ const Workers = () => {
   );
 };
 
-const Section = ({ title, items, color }: { title: string; items: string[]; color: string }) => (
+const Section = ({ title, items, color, icon }: { title: string; items: string[]; color: string; icon: string }) => (
   <div>
-    <h3 className="font-display font-semibold text-sm mb-3">{title}</h3>
+    <h3 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
+      <span className={`${color} text-xs`}>{icon}</span>
+      {title}
+    </h3>
     <ul className="space-y-2">
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground group leading-relaxed">
