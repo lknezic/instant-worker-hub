@@ -47,16 +47,20 @@ const Dashboard = () => {
   };
 
   const StarRating = ({ rating, cardId }: { rating: number; cardId: string }) => (
-    <div className="flex gap-px">
+    <div className="flex gap-0.5">
       {Array.from({ length: 10 }, (_, i) => (
         <button
           key={i}
           onClick={() => updateCard(cardId, { rating: i + 1 })}
-          className={`w-3.5 h-3.5 flex items-center justify-center transition-all ${
-            i < rating ? "text-primary" : "text-muted-foreground/20"
+          className={`w-5 h-5 rounded text-[10px] font-semibold flex items-center justify-center transition-all border ${
+            i + 1 === rating
+              ? "bg-primary text-primary-foreground border-primary"
+              : i < rating
+              ? "bg-primary/15 text-primary border-primary/30"
+              : "bg-muted/30 text-muted-foreground border-border hover:border-primary/30"
           }`}
         >
-          <Star className="w-2.5 h-2.5" fill={i < rating ? "currentColor" : "none"} />
+          {i + 1}
         </button>
       ))}
     </div>
