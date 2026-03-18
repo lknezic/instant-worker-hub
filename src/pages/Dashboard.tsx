@@ -166,7 +166,7 @@ const Dashboard = () => {
                         </div>
                       )}
 
-                      <div className="absolute bottom-2.5 right-2.5 opacity-30">
+                      <div className="absolute top-2.5 right-2.5 opacity-20">
                         <ChannelIcon channel={card.channel} className="w-3.5 h-3.5" />
                       </div>
                     </div>
