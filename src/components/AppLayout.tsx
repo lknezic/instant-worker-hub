@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import logoIcon from "@/assets/logo-icon.png";
 
 const navItems = [
   { to: "/app", label: "Home", end: true },
@@ -30,9 +31,7 @@ const AppLayout = () => {
         {/* Brand */}
         <div className="p-5 border-b border-border">
           <button onClick={() => navigate("/app")} className="text-left flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
-              <span className="text-primary-foreground font-display font-bold text-xs">IW</span>
-            </div>
+            <img src={logoIcon} alt="InstantWorker" className="w-7 h-7" />
             <div>
               <h1 className="font-display text-sm font-semibold tracking-tight leading-none">
                 Instant<span className="text-primary">Worker</span>

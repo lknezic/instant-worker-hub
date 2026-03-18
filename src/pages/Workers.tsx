@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { workers as allWorkers, workerLearning, activityLog } from "@/data/mockData";
-import { ChannelBadge, ChannelIcon, StatusDot } from "@/components/Icons";
+import { ChannelIcon, StatusDot } from "@/components/Icons";
 
 const Workers = () => {
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
@@ -38,12 +38,12 @@ const Workers = () => {
         <div className="px-6 py-3 border-b border-border flex items-center gap-4 shrink-0 bg-card/30">
           <button onClick={() => setSelectedWorker(null)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back</button>
           <div className="w-px h-4 bg-border" />
-          <ChannelIcon channel={worker.channel} className="w-4 h-4" />
+          <span className="text-lg">{worker.emoji}</span>
           <span className="font-display font-semibold text-sm">{worker.name}</span>
           <StatusDot status={worker.status} />
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(worker.status)}`}>{worker.status}</span>
-          <div className="ml-auto">
-            <ChannelBadge channel={worker.channel} />
+          <div className="ml-auto opacity-40">
+            <ChannelIcon channel={worker.channel} className="w-4 h-4" />
           </div>
         </div>
 
@@ -193,24 +193,11 @@ const Workers = () => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {allWorkers.map((w, i) => (
-          <div key={w.id} className="glass-card rounded-xl p-5 glow-border animate-fade-in group relative overflow-hidden" style={{ animationDelay: `${i * 0.06}s` }}>
-            {/* Large channel watermark */}
-            <div className="absolute -bottom-3 -right-3 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
-              <ChannelIcon channel={w.channel} className="w-24 h-24" />
-            </div>
-
-            <div className="flex items-center justify-between mb-3 relative">
+          <div key={w.id} className="glass-card rounded-xl p-5 glow-border animate-fade-in relative" style={{ animationDelay: `${i * 0.06}s` }}>
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2.5">
-                <div className="relative">
-                  <span className="text-xl">{w.emoji}</span>
-                  <div className="absolute -bottom-0.5 -right-0.5">
-                    <ChannelIcon channel={w.channel} className="w-3 h-3" />
-                  </div>
-                </div>
-                <div>
-                  <span className="font-display font-semibold block leading-tight">{w.name}</span>
-                  <ChannelBadge channel={w.channel} />
-                </div>
+                <span className="text-xl">{w.emoji}</span>
+                <span className="font-display font-semibold">{w.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <StatusDot status={w.status} />
@@ -229,6 +216,11 @@ const Workers = () => {
             >
               Open →
             </button>
+
+            {/* Channel icon — bottom right */}
+            <div className="absolute bottom-4 right-4 opacity-25">
+              <ChannelIcon channel={w.channel} className="w-4 h-4" />
+            </div>
           </div>
         ))}
       </div>
