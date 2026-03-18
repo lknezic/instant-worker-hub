@@ -212,14 +212,14 @@ export const activityLog = [
 export const findings: Finding[] = [
   { id: "f1", emoji: "🏢", label: "Business Name", value: "FitnessPro", confidence: "confident", required: true },
   { id: "f2", emoji: "📝", label: "Description", value: "Online fitness coaching for busy professionals", confidence: "confident", required: true },
-  { id: "f3", emoji: "🎯", label: "Target Audience", value: "Busy professionals 30-50 who want to get fit without spending hours in the gym", confidence: "confident", required: true },
-  { id: "f4", emoji: "💡", label: "Topics", value: "Home workouts, nutrition, recovery, mindset, meal prep", confidence: "needs-review" },
+  { id: "f3", emoji: "🎯", label: "Target Audience", value: "Busy professionals 30-50 who want to get fit without spending hours in the gym", confidence: "needs-review", required: true },
+  { id: "f4", emoji: "💡", label: "Topics", value: "Home workouts, nutrition, recovery, mindset, meal prep, strength training, flexibility, sleep optimization, stress management, habit building, body composition, cardio, supplements, injury prevention, time management", confidence: "confident" },
   { id: "f5", emoji: "🗣️", label: "Voice & Tone", value: "Motivational but grounded, real results over hype", confidence: "needs-review" },
   { id: "f6", emoji: "💰", label: "Offers", value: "7-day free trial, 12-week transformation program", confidence: "needs-review" },
   { id: "f7", emoji: "🏁", label: "Competitors", value: "Peloton, Noom, MyFitnessPal", confidence: "confident" },
   { id: "f8", emoji: "😤", label: "Pain Points", value: "No time, inconsistent routines, overwhelmed by info", confidence: "needs-review" },
-  { id: "f9", emoji: "⚡", label: "Features", value: "Personalized plans, progress tracking, community", confidence: "missing" },
-  { id: "f10", emoji: "🚫", label: "Forbidden Topics", value: "Crash diets, steroids, body shaming", confidence: "missing" },
+  { id: "f9", emoji: "⚡", label: "Features", value: "Personalized plans, progress tracking, community", confidence: "confident" },
+  { id: "f10", emoji: "🚫", label: "Forbidden Topics", value: "", confidence: "missing", required: true },
   { id: "f11", emoji: "⚖️", label: "Regulated Industry", value: "", confidence: "missing" },
 ];
 
