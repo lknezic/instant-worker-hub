@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { kanbanCards as initialCards, type KanbanCard } from "@/data/mockData";
+import { ChannelBadge, ChannelIcon } from "@/components/Icons";
 
 const columns = [
   { key: "pending" as const, label: "PENDING", dotColor: "bg-warning" },
@@ -20,11 +21,20 @@ const Dashboard = () => {
 
   const addTask = () => {
     if (!newTaskContent.trim()) return;
+    const workerMap: Record<string, { emoji: string; name: string; channel: "X" | "Reddit" }> = {
+      w1: { emoji: "✍️", name: "X Poster", channel: "X" },
+      w2: { emoji: "💬", name: "X Engagement", channel: "X" },
+      w3: { emoji: "🗣️", name: "Reddit Commenter", channel: "Reddit" },
+      w4: { emoji: "📝", name: "Reddit Flagship", channel: "Reddit" },
+      w5: { emoji: "♻️", name: "Content Recycler", channel: "X" },
+    };
+    const w = workerMap[newTaskWorker];
     const newCard: KanbanCard = {
       id: `k${Date.now()}`,
       workerId: newTaskWorker,
-      workerEmoji: "✍️",
-      workerName: "X Poster",
+      workerEmoji: w.emoji,
+      workerName: w.name,
+      channel: w.channel,
       skill: "custom",
       content: newTaskContent,
       status: "pending",
@@ -53,23 +63,26 @@ const Dashboard = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Stats bar */}
-      <div className="px-6 py-3 border-b border-border flex items-center gap-8 text-sm shrink-0 bg-card/30">
+      {/* Stats bar — futuristic with neon separators */}
+      <div className="px-6 py-3 border-b border-border flex items-center gap-0 text-sm shrink-0 bg-card/30">
         {[
           { label: "Posts this week", value: "15/35", color: "text-foreground" },
           { label: "Pending", value: "7", color: "text-warning" },
           { label: "Engagement", value: "2.3%", color: "text-success" },
           { label: "Grade", value: "B+", color: "text-primary" },
-        ].map((stat) => (
-          <div key={stat.label} className="flex items-baseline gap-2">
-            <span className="text-muted-foreground text-xs">{stat.label}</span>
-            <span className={`font-display font-semibold ${stat.color}`}>{stat.value}</span>
+        ].map((stat, i) => (
+          <div key={stat.label} className="flex items-center">
+            {i > 0 && <div className="w-px h-6 bg-border mx-5" />}
+            <div className="flex items-baseline gap-2">
+              <span className="text-muted-foreground text-xs uppercase tracking-wider font-display">{stat.label}</span>
+              <span className={`font-display text-lg font-bold ${stat.color}`}>{stat.value}</span>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Strategy banner */}
-      <div className="mx-6 mt-4 px-4 py-2.5 glass-card rounded-lg flex items-center justify-between shrink-0">
+      <div className="mx-6 mt-4 px-4 py-2.5 glass-card rounded-lg flex items-center justify-between shrink-0 scan-line-subtle">
         <span className="text-sm text-muted-foreground">
           Upgrade to <span className="text-foreground font-medium">Strategy Suite</span> for weekly content pillars
         </span>
@@ -87,32 +100,43 @@ const Dashboard = () => {
               <div key={col.key} className="flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-3 px-1">
                   <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`}>
+                      {col.key === "pending" && <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} animate-ping absolute`} />}
+                    </div>
                     <span className="text-[11px] font-display font-semibold tracking-widest text-muted-foreground">{col.label}</span>
-                    <span className="text-[11px] text-muted-foreground/50">{colCards.length}</span>
+                    <span className="text-[11px] font-display text-muted-foreground/40 font-bold">{colCards.length}</span>
                   </div>
                   {col.key === "pending" && (
-                    <button onClick={() => setShowAddModal(true)} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">
+                    <button onClick={() => setShowAddModal(true)} className="text-xs text-primary hover:text-primary/80 font-display font-semibold transition-colors">
                       + Add
                     </button>
                   )}
                 </div>
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {colCards.map((card) => (
-                    <div key={card.id} className="glass-card rounded-lg p-3 glow-border">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className="text-sm">{card.workerEmoji}</span>
-                        <span className="text-xs font-display font-medium">{card.workerName}</span>
+                    <div key={card.id} className="glass-card rounded-lg p-3 glow-border group relative overflow-hidden">
+                      {/* Channel watermark in corner */}
+                      <div className="absolute top-2 right-2 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+                        <ChannelIcon channel={card.channel} className="w-8 h-8" />
                       </div>
-                      <span className="inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium mb-2">
-                        {card.skill}
-                      </span>
+
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <ChannelIcon channel={card.channel} className="w-3 h-3" />
+                        <span className="text-xs font-display font-semibold">{card.workerName}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
+                          {card.skill}
+                        </span>
+                      </div>
                       <p className="text-xs text-muted-foreground line-clamp-3 mb-2.5 leading-relaxed">{card.content}</p>
 
                       {card.status === "posted" && card.metrics && (
-                        <p className="text-[11px] text-muted-foreground/70 mb-2">
-                          👁 {card.metrics.views.toLocaleString()} · 🔖 {card.metrics.saves} · 💬 {card.metrics.comments}
-                        </p>
+                        <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 mb-2 font-mono">
+                          <span>👁 {card.metrics.views.toLocaleString()}</span>
+                          <span>🔖 {card.metrics.saves}</span>
+                          <span>💬 {card.metrics.comments}</span>
+                        </div>
                       )}
 
                       <StarRating rating={card.rating} cardId={card.id} />

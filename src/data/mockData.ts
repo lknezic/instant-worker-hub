@@ -16,6 +16,7 @@ export interface KanbanCard {
   workerId: string;
   workerEmoji: string;
   workerName: string;
+  channel: "X" | "Reddit";
   skill: string;
   content: string;
   status: "pending" | "approved" | "posted" | "rejected";
@@ -39,19 +40,19 @@ export const workers: Worker[] = [
 ];
 
 export const kanbanCards: KanbanCard[] = [
-  { id: "k1", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", skill: "value-tweet", content: "Most founders spend 80% of their time on the 20% that doesn't matter. Here's how to flip that ratio and actually move the needle on growth...", status: "pending", rating: 0 },
-  { id: "k2", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", skill: "contrarian-hook", content: "Unpopular opinion: Your content strategy doesn't need more content. It needs better distribution. Here's why most brands get this backwards...", status: "pending", rating: 0 },
-  { id: "k3", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", skill: "thoughtful-reply", content: "Great point about attribution. We found that most teams over-index on last-touch and miss the compounding effect of awareness content.", status: "pending", rating: 0 },
-  { id: "k4", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", skill: "helpful-answer", content: "I've tested both approaches extensively. The key insight is that consistency beats optimization in the first 90 days. Focus on volume first, then refine.", status: "pending", rating: 0 },
-  { id: "k5", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", skill: "thread-opener", content: "I spent 6 months studying what makes B2B content go viral. Here are 7 patterns I found (thread) 🧵", status: "approved", rating: 8 },
-  { id: "k6", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", skill: "thoughtful-reply", content: "This is so true. The companies winning at content marketing aren't the ones with the biggest budgets — they're the ones with the most authentic voice.", status: "approved", rating: 7 },
-  { id: "k7", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", skill: "value-tweet", content: "The best marketing doesn't feel like marketing. It feels like a friend giving you advice you didn't know you needed.", status: "posted", rating: 9, metrics: { views: 4200, saves: 89, comments: 23 } },
-  { id: "k8", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", skill: "helpful-answer", content: "From my experience, the ROI on organic social is 10x paid when you get the flywheel going. The trick is the first 90 days.", status: "posted", rating: 7, metrics: { views: 1800, saves: 42, comments: 15 } },
-  { id: "k9", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", skill: "hot-take", content: "SEO is dead for startups. The future is building an audience that comes to you. Here's my controversial framework...", status: "posted", rating: 8, metrics: { views: 6100, saves: 156, comments: 47 } },
-  { id: "k10", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", skill: "thoughtful-reply", content: "I disagree. Cold outreach still works if you lead with value. The problem is most people lead with a pitch.", status: "rejected", rating: 3 },
-  { id: "k11", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", skill: "contrarian-hook", content: "Your marketing team is too big. You need 2 people, not 20. Here's the lean marketing stack that outperforms agencies...", status: "pending", rating: 0 },
-  { id: "k12", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", skill: "resource-drop", content: "Here's a free template I put together for tracking content performance across channels. It's helped us identify what actually drives pipeline.", status: "pending", rating: 0 },
-  { id: "k13", workerId: "w5", workerEmoji: "♻️", workerName: "Content Recycler", skill: "reframe", content: "Remember that thread about B2B virality? Here's the TL;DR as a single actionable tweet: Focus on 'surprisingly useful' over 'surprisingly clever'.", status: "pending", rating: 0 },
+  { id: "k1", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "value-tweet", content: "Most founders spend 80% of their time on the 20% that doesn't matter. Here's how to flip that ratio and actually move the needle on growth...", status: "pending", rating: 0 },
+  { id: "k2", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "contrarian-hook", content: "Unpopular opinion: Your content strategy doesn't need more content. It needs better distribution. Here's why most brands get this backwards...", status: "pending", rating: 0 },
+  { id: "k3", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", channel: "X", skill: "thoughtful-reply", content: "Great point about attribution. We found that most teams over-index on last-touch and miss the compounding effect of awareness content.", status: "pending", rating: 0 },
+  { id: "k4", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", channel: "Reddit", skill: "helpful-answer", content: "I've tested both approaches extensively. The key insight is that consistency beats optimization in the first 90 days. Focus on volume first, then refine.", status: "pending", rating: 0 },
+  { id: "k5", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "thread-opener", content: "I spent 6 months studying what makes B2B content go viral. Here are 7 patterns I found (thread) 🧵", status: "approved", rating: 8 },
+  { id: "k6", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", channel: "X", skill: "thoughtful-reply", content: "This is so true. The companies winning at content marketing aren't the ones with the biggest budgets — they're the ones with the most authentic voice.", status: "approved", rating: 7 },
+  { id: "k7", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "value-tweet", content: "The best marketing doesn't feel like marketing. It feels like a friend giving you advice you didn't know you needed.", status: "posted", rating: 9, metrics: { views: 4200, saves: 89, comments: 23 } },
+  { id: "k8", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", channel: "Reddit", skill: "helpful-answer", content: "From my experience, the ROI on organic social is 10x paid when you get the flywheel going. The trick is the first 90 days.", status: "posted", rating: 7, metrics: { views: 1800, saves: 42, comments: 15 } },
+  { id: "k9", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "hot-take", content: "SEO is dead for startups. The future is building an audience that comes to you. Here's my controversial framework...", status: "posted", rating: 8, metrics: { views: 6100, saves: 156, comments: 47 } },
+  { id: "k10", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", channel: "X", skill: "thoughtful-reply", content: "I disagree. Cold outreach still works if you lead with value. The problem is most people lead with a pitch.", status: "rejected", rating: 3 },
+  { id: "k11", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "contrarian-hook", content: "Your marketing team is too big. You need 2 people, not 20. Here's the lean marketing stack that outperforms agencies...", status: "pending", rating: 0 },
+  { id: "k12", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", channel: "Reddit", skill: "resource-drop", content: "Here's a free template I put together for tracking content performance across channels. It's helped us identify what actually drives pipeline.", status: "pending", rating: 0 },
+  { id: "k13", workerId: "w5", workerEmoji: "♻️", workerName: "Content Recycler", channel: "X", skill: "reframe", content: "Remember that thread about B2B virality? Here's the TL;DR as a single actionable tweet: Focus on 'surprisingly useful' over 'surprisingly clever'.", status: "pending", rating: 0 },
 ];
 
 export const findings: Finding[] = [
