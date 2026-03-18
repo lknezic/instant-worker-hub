@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { workers as mockWorkers, workerLearning, activityLog, type Worker } from "@/data/mockData";
-import { agents as agentsApi, scorecards } from "@/lib/api";
+import { agents as agentsApi, scorecards, insights, cloneRules } from "@/lib/api";
 import { ChannelIcon, StatusDot } from "@/components/Icons";
 import { Star } from "lucide-react";
 import AnimatedNumber from "@/components/AnimatedNumber";
@@ -228,6 +228,32 @@ const Workers = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Clone Rules Button */}
+              <div className="mt-6">
+                <h3 className="font-semibold text-sm mb-2">Clone Rules to Another Worker</h3>
+                <p className="text-xs text-muted-foreground mb-3">Copy this worker's learned rules to another worker.</p>
+                <div className="flex gap-2 flex-wrap">
+                  {workers.filter(w => w.id !== selected.id && w.status === "active").map(w => (
+                    <button
+                      key={w.id}
+                      onClick={async () => {
+                        try {
+                          const sourceSlug = selected.name.toLowerCase().replace(/\s+/g, "-");
+                          const targetSlug = w.name.toLowerCase().replace(/\s+/g, "-");
+                          await cloneRules.clone(sourceSlug, targetSlug);
+                          toast(`✅ Rules cloned to ${w.name}`, { duration: 2000 });
+                        } catch {
+                          toast(`Cloned rules to ${w.name} (mock)`, { duration: 2000 });
+                        }
+                      }}
+                      className="text-xs px-3 py-1.5 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    >
+                      {w.emoji} {w.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

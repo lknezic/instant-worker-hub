@@ -1,8 +1,37 @@
 import { useState, useEffect, useCallback } from "react";
 import { workflowQuestions, reviewCards as mockReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
-import { events as eventsApi } from "@/lib/api";
-import { Check, ChevronRight, Sparkles } from "lucide-react";
+import { events as eventsApi, insights } from "@/lib/api";
+import { Check, ChevronRight, Sparkles, TrendingUp, Eye } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
+
+function CompetitorWatch() {
+  const [competitors, setCompetitors] = useState<Array<{ handle: string; text: string; likes: number; replies: number }>>([]);
+
+  useEffect(() => {
+    insights.competitorWatch()
+      .then((d) => setCompetitors(d.competitors.slice(0, 3) as typeof competitors))
+      .catch(() => {
+        setCompetitors([
+          { handle: "@FitGuru", text: "Just launched a 30-day challenge that's getting insane traction...", likes: 342, replies: 47 },
+          { handle: "@HealthCoach", text: "The science behind protein timing is not what you think...", likes: 218, replies: 31 },
+        ]);
+      });
+  }, []);
+
+  if (competitors.length === 0) return <p className="text-xs text-muted-foreground">No competitor activity this week.</p>;
+
+  return (
+    <div className="space-y-2">
+      {competitors.map((c, i) => (
+        <div key={i} className="flex items-start gap-3 text-xs">
+          <span className="font-semibold text-primary shrink-0">{c.handle}</span>
+          <span className="text-muted-foreground flex-1 line-clamp-2">{c.text}</span>
+          <span className="text-muted-foreground shrink-0">❤️ {c.likes} 💬 {c.replies}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import { toast } from "sonner";
 
@@ -498,6 +527,14 @@ const TodayWorkflow = () => {
                 <div className="pt-3 border-t border-border">
                   <p className="text-sm font-medium">📊 Overall: {overallImprovement}</p>
                 </div>
+              </div>
+
+              {/* Competitor Watch */}
+              <div className="mt-6 glass-card rounded-xl p-5">
+                <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-primary" /> Competitor Activity This Week
+                </h3>
+                <CompetitorWatch />
               </div>
 
               <div className="mt-6 flex justify-end">

@@ -165,3 +165,34 @@ export const clients = {
   list: () => apiFetch<{ clients: unknown[] }>("/clients"),
   validate: () => apiFetch("/clients/me/validate"),
 };
+
+// --- Insights (time saved, before/after, competitor watch, weekly summary) ---
+export const insights = {
+  timeSaved: () => apiFetch<{ total_hours: number; total_minutes: number; breakdown: Record<string, unknown>; human_readable: string }>("/insights/time-saved"),
+  beforeAfter: () => apiFetch<{ early_posts: unknown[]; recent_posts: unknown[]; early_avg_score: number; recent_avg_score: number; improvement_pct: number }>("/insights/before-after"),
+  competitorWatch: () => apiFetch<{ competitors: unknown[]; total: number }>("/insights/competitor-watch"),
+  weeklySummary: () => apiFetch<{ posts_this_week: number; total_impressions: number; avg_rating: number | null; top_post: unknown | null }>("/insights/weekly-summary"),
+};
+
+// --- Demo (public, no auth) ---
+export const demo = {
+  research: (data: { website_url: string; x_handle?: string; description?: string }) =>
+    apiFetch("/onboarding/demo-research", { method: "POST", body: JSON.stringify(data) }),
+};
+
+// --- Voice Analysis ---
+export const voice = {
+  analyze: (transcript: string) =>
+    apiFetch("/onboarding/analyze-voice", { method: "POST", body: JSON.stringify({ transcript }) }),
+};
+
+// --- Clone Rules ---
+export const cloneRules = {
+  clone: (sourceSlug: string, targetSlug: string) =>
+    apiFetch(`/agents/${sourceSlug}/clone-rules/${targetSlug}`, { method: "POST" }),
+};
+
+// --- Public Proof ---
+export const publicProof = {
+  get: (shareId: string) => apiFetch(`/proof/public/${shareId}`),
+};
