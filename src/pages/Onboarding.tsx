@@ -32,6 +32,7 @@ const Onboarding = () => {
   const [channelX, setChannelX] = useState(false);
   const [channelReddit, setChannelReddit] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
 
   const enabledCount = Object.values(workerToggles).filter(Boolean).length;
   const requiredConfirmed = findingsData.filter(f => f.required).every(f => confirmedIds.has(f.id));
@@ -58,8 +59,13 @@ const Onboarding = () => {
     setTimeout(() => {
       clearInterval(interval);
       setLoading(false);
-      setStep(1);
+      goToStep(1);
     }, 2200);
+  };
+
+  const goToStep = (newStep: number) => {
+    setSlideDirection(newStep > step ? "left" : "right");
+    setStep(newStep);
   };
 
   const confidenceBadge = (c: Finding["confidence"]) => {
@@ -105,7 +111,12 @@ const Onboarding = () => {
         ))}
       </div>
 
-      <div className="w-full max-w-2xl relative z-10 animate-fade-in">
+      <div
+        key={step}
+        className={`w-full max-w-2xl relative z-10 ${
+          slideDirection === "left" ? "animate-slide-in-left" : "animate-slide-in-right-reverse"
+        }`}
+      >
         {/* Step 1: Research */}
         {step === 0 && (
           <div className="glass-card-strong rounded-xl p-6 gradient-border">
@@ -164,7 +175,6 @@ const Onboarding = () => {
                       </span>
                     </div>
 
-                    {/* Topics — show as tags */}
                     {isTopics && editingId !== f.id ? (
                       <div className="flex flex-wrap gap-1.5">
                         {f.value.split(", ").filter(Boolean).map((topic) => (
@@ -174,7 +184,6 @@ const Onboarding = () => {
                         ))}
                       </div>
                     ) : isRegulated && editingId !== f.id ? (
-                      /* Regulated Industry — yes/no toggle */
                       <div className="flex items-center gap-3">
                         <Toggle
                           on={f.value === "yes"}
@@ -224,7 +233,7 @@ const Onboarding = () => {
             </div>
 
             <button
-              onClick={() => setStep(2)}
+              onClick={() => goToStep(2)}
               disabled={!requiredConfirmed}
               className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all disabled:opacity-50"
             >

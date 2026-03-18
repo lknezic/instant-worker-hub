@@ -3,6 +3,16 @@ import { workers as allWorkers, workerLearning, activityLog } from "@/data/mockD
 import { ChannelIcon, StatusDot } from "@/components/Icons";
 import { Star } from "lucide-react";
 import AnimatedNumber from "@/components/AnimatedNumber";
+import MiniSparkline from "@/components/MiniSparkline";
+
+// Sparkline data per worker
+const sparklineData: Record<string, number[]> = {
+  w1: [1.2, 1.5, 1.8, 2.1, 2.3, 2.6],
+  w2: [0.8, 1.0, 0.9, 1.2, 1.1, 1.4],
+  w3: [1.5, 1.3, 1.7, 1.9, 2.0, 2.2],
+  w4: [2.0, 2.5, 2.8, 3.1, 2.9, 3.4],
+  w5: [0, 0, 0, 0, 0, 0],
+};
 
 const Workers = () => {
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
@@ -32,6 +42,16 @@ const Workers = () => {
       rejected: "bg-destructive/15 text-destructive",
     };
     return colors[s] || "bg-muted text-muted-foreground";
+  };
+
+  const statusBorderColor = (s: string) => {
+    const colors: Record<string, string> = {
+      posted: "border-l-2 border-l-success",
+      pending: "border-l-2 border-l-warning",
+      approved: "border-l-2 border-l-info",
+      rejected: "border-l-2 border-l-destructive",
+    };
+    return colors[s] || "";
   };
 
   if (selectedWorker && worker) {
@@ -134,7 +154,11 @@ const Workers = () => {
           {activeTab === "activity" && (
             <div className="max-w-2xl space-y-2">
               {activityLog.map((a, i) => (
-                <div key={a.id} className="glass-card rounded-lg p-3.5 flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                <div
+                  key={a.id}
+                  className={`glass-card rounded-lg p-3.5 flex items-start gap-3 animate-fade-in ${statusBorderColor(a.status)}`}
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(a.status)}`}>{a.status}</span>
@@ -230,8 +254,9 @@ const Workers = () => {
             <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
               <span className="font-mono">{w.postsThisWeek} {w.channel === "X" ? "posts" : "comments"}</span>
               {w.avgRating > 0 && (
-                <span className="text-primary font-semibold flex items-center gap-0.5">
+                <span className="text-primary font-semibold flex items-center gap-1">
                   <Star className="w-3 h-3" fill="currentColor" /> {w.avgRating}
+                  <MiniSparkline data={sparklineData[w.id] || []} className="ml-1" />
                 </span>
               )}
             </div>
