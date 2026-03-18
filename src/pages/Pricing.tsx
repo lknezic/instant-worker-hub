@@ -39,50 +39,57 @@ const Pricing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16">
-      <div className="text-center mb-12">
-        <button onClick={() => navigate("/login")} className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 bg-grid bg-radial-top relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="text-center mb-12 relative z-10 animate-fade-in">
+        <button onClick={() => navigate("/login")} className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block transition-colors">
           ← Back to login
         </button>
-        <h1 className="text-3xl font-semibold tracking-tight">Simple, transparent pricing</h1>
-        <p className="text-muted-foreground mt-2">Start automating your marketing today</p>
+        <h1 className="font-display text-4xl font-bold tracking-tight">
+          Simple, transparent <span className="text-primary">pricing</span>
+        </h1>
+        <p className="text-muted-foreground mt-3 max-w-md mx-auto">
+          Hire your AI marketing team today. No training, no setup — just results.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl w-full">
-        {plans.map((plan) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl w-full relative z-10">
+        {plans.map((plan, i) => (
           <div
             key={plan.name}
-            className={`relative bg-card border rounded-lg p-6 flex flex-col ${
-              plan.popular ? "border-primary" : "border-border"
-            } ${plan.comingSoon ? "opacity-50" : ""}`}
+            className={`relative rounded-xl p-6 flex flex-col animate-fade-in glow-border ${
+              plan.popular ? "gradient-border glass-card-strong" : "glass-card"
+            } ${plan.comingSoon ? "opacity-40" : ""}`}
+            style={{ animationDelay: `${i * 0.08}s` }}
           >
             {plan.popular && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-medium px-2.5 py-0.5 rounded-full">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-display font-semibold px-3 py-0.5 rounded-full btn-glow">
                 POPULAR
               </span>
             )}
             {plan.comingSoon && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-muted text-muted-foreground text-xs font-medium px-2.5 py-0.5 rounded-full">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-muted text-muted-foreground text-xs font-medium px-3 py-0.5 rounded-full">
                 COMING Q2
               </span>
             )}
 
-            <h2 className="text-lg font-semibold">{plan.name}</h2>
-            <div className="mt-2 mb-4">
+            <h2 className="font-display text-lg font-semibold">{plan.name}</h2>
+            <div className="mt-2 mb-5">
               {plan.comingSoon ? (
                 <span className="text-muted-foreground text-sm">Coming Q2</span>
               ) : (
                 <>
-                  <span className="text-3xl font-bold">{plan.price}</span>
+                  <span className="font-display text-4xl font-bold">{plan.price}</span>
                   <span className="text-muted-foreground text-sm">/mo</span>
                 </>
               )}
             </div>
 
-            <ul className="space-y-2 mb-6 flex-1">
+            <ul className="space-y-2.5 mb-6 flex-1">
               {plan.features.map((f) => (
-                <li key={f} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <span className="text-primary">✓</span> {f}
+                <li key={f} className="text-sm text-muted-foreground flex items-center gap-2.5">
+                  <span className="text-primary text-xs">●</span> {f}
                 </li>
               ))}
             </ul>
@@ -90,10 +97,12 @@ const Pricing = () => {
             <button
               onClick={() => !plan.comingSoon && navigate("/onboarding")}
               disabled={plan.comingSoon}
-              className={`w-full text-sm font-medium rounded-md py-2 transition-opacity ${
+              className={`w-full text-sm font-display font-semibold rounded-lg py-2.5 transition-all ${
                 plan.comingSoon
                   ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : "bg-primary text-primary-foreground hover:opacity-90"
+                  : plan.popular
+                    ? "bg-primary text-primary-foreground btn-glow hover:opacity-90"
+                    : "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
               }`}
             >
               {plan.cta}
