@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { kanbanCards as initialCards, type KanbanCard } from "@/data/mockData";
+import { kanbanCards as initialCards, type ReviewCard } from "@/data/mockData";
 import { ChannelIcon } from "@/components/Icons";
+import { Star } from "lucide-react";
 
 const columns = [
   { key: "pending" as const, label: "PENDING", dotColor: "bg-warning" },
@@ -10,12 +11,12 @@ const columns = [
 ];
 
 const Dashboard = () => {
-  const [cards, setCards] = useState<KanbanCard[]>(initialCards);
+  const [cards, setCards] = useState<ReviewCard[]>(initialCards);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTaskContent, setNewTaskContent] = useState("");
   const [newTaskWorker, setNewTaskWorker] = useState("w1");
 
-  const updateCard = (id: string, updates: Partial<KanbanCard>) => {
+  const updateCard = (id: string, updates: Partial<ReviewCard>) => {
     setCards((c) => c.map((card) => card.id === id ? { ...card, ...updates } : card));
   };
 
@@ -29,7 +30,7 @@ const Dashboard = () => {
       w5: { emoji: "♻️", name: "Content Recycler", channel: "X" },
     };
     const w = workerMap[newTaskWorker];
-    const newCard: KanbanCard = {
+    const newCard: ReviewCard = {
       id: `k${Date.now()}`,
       workerId: newTaskWorker,
       workerEmoji: w.emoji,
@@ -51,11 +52,11 @@ const Dashboard = () => {
         <button
           key={i}
           onClick={() => updateCard(cardId, { rating: i + 1 })}
-          className={`w-3.5 h-3.5 rounded-sm text-[9px] flex items-center justify-center transition-all ${
-            i < rating ? "bg-primary/20 text-primary" : "bg-muted/50 text-muted-foreground/20"
+          className={`w-3.5 h-3.5 flex items-center justify-center transition-all ${
+            i < rating ? "text-primary" : "text-muted-foreground/20"
           }`}
         >
-          ★
+          <Star className="w-2.5 h-2.5" fill={i < rating ? "currentColor" : "none"} />
         </button>
       ))}
     </div>
@@ -67,15 +68,15 @@ const Dashboard = () => {
       <div className="px-6 py-3 border-b border-border flex items-center gap-0 text-sm shrink-0 bg-card/30">
         {[
           { label: "Posts this week", value: "15/35", color: "text-foreground" },
-          { label: "Pending", value: "7", color: "text-warning" },
+          { label: "Pending", value: String(cards.filter(c => c.status === "pending").length), color: "text-warning" },
           { label: "Engagement", value: "2.3%", color: "text-success" },
           { label: "Grade", value: "B+", color: "text-primary" },
         ].map((stat, i) => (
           <div key={stat.label} className="flex items-center">
             {i > 0 && <div className="w-px h-6 bg-border mx-5" />}
             <div className="flex items-baseline gap-2">
-              <span className="text-muted-foreground text-xs uppercase tracking-wider font-display">{stat.label}</span>
-              <span className={`font-display text-lg font-bold ${stat.color}`}>{stat.value}</span>
+              <span className="text-muted-foreground text-xs uppercase tracking-wider">{stat.label}</span>
+              <span className={`text-lg font-bold ${stat.color}`}>{stat.value}</span>
             </div>
           </div>
         ))}
@@ -86,7 +87,7 @@ const Dashboard = () => {
         <span className="text-sm text-muted-foreground">
           Upgrade to <span className="text-foreground font-medium">Strategy Suite</span> for weekly content pillars
         </span>
-        <span className="text-[10px] font-display font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full uppercase tracking-wider">
+        <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full uppercase tracking-wider">
           Coming Soon
         </span>
       </div>
@@ -103,11 +104,11 @@ const Dashboard = () => {
                     <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} relative`}>
                       {col.key === "pending" && <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} animate-ping absolute inset-0`} />}
                     </div>
-                    <span className="text-[11px] font-display font-semibold tracking-widest text-muted-foreground">{col.label}</span>
-                    <span className="text-[11px] font-display text-muted-foreground/40 font-bold">{colCards.length}</span>
+                    <span className="text-[11px] font-semibold tracking-widest text-muted-foreground">{col.label}</span>
+                    <span className="text-[11px] text-muted-foreground/40 font-bold">{colCards.length}</span>
                   </div>
                   {col.key === "pending" && (
-                    <button onClick={() => setShowAddModal(true)} className="text-xs text-primary hover:text-primary/80 font-display font-semibold transition-colors">
+                    <button onClick={() => setShowAddModal(true)} className="text-xs text-primary hover:text-primary/80 font-semibold transition-colors">
                       + Add
                     </button>
                   )}
@@ -117,7 +118,7 @@ const Dashboard = () => {
                     <div key={card.id} className="glass-card rounded-lg p-3 glow-border relative">
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <span className="text-sm">{card.workerEmoji}</span>
-                        <span className="text-xs font-display font-semibold">{card.workerName}</span>
+                        <span className="text-xs font-semibold">{card.workerName}</span>
                       </div>
                       <span className="inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium mb-2">
                         {card.skill}
@@ -148,7 +149,6 @@ const Dashboard = () => {
                         </div>
                       )}
 
-                      {/* Channel icon — bottom right */}
                       <div className="absolute bottom-2.5 right-2.5 opacity-30">
                         <ChannelIcon channel={card.channel} className="w-3.5 h-3.5" />
                       </div>
@@ -165,7 +165,8 @@ const Dashboard = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={() => setShowAddModal(false)}>
           <div className="glass-card-strong rounded-xl p-6 w-full max-w-md gradient-border animate-scale-in" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display font-semibold mb-4">Add Task</h3>
+            <h3 className="font-semibold mb-1">Create Custom Task</h3>
+            <p className="text-xs text-muted-foreground mb-4">What should we create?</p>
             <textarea
               value={newTaskContent}
               onChange={(e) => setNewTaskContent(e.target.value)}
@@ -173,21 +174,25 @@ const Dashboard = () => {
               rows={4}
               className="w-full bg-background/50 border border-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 placeholder:text-muted-foreground resize-none mb-3 transition-all"
             />
-            <select
-              value={newTaskWorker}
-              onChange={(e) => setNewTaskWorker(e.target.value)}
-              className="w-full bg-background/50 border border-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary mb-4"
-            >
-              <option value="w1">✍️ X Poster</option>
-              <option value="w2">💬 X Engagement</option>
-              <option value="w3">🗣️ Reddit Commenter</option>
-              <option value="w4">📝 Reddit Flagship</option>
-              <option value="w5">♻️ Content Recycler</option>
-            </select>
-            <div className="flex gap-2">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 text-sm py-2.5 border border-border rounded-lg text-muted-foreground hover:text-foreground hover:border-muted-foreground transition-all">Cancel</button>
-              <button onClick={addTask} className="flex-1 text-sm py-2.5 bg-primary text-primary-foreground rounded-lg btn-glow hover:opacity-90 transition-all font-display font-semibold">Create Task</button>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm text-muted-foreground">Which worker?</span>
+              <select
+                value={newTaskWorker}
+                onChange={(e) => setNewTaskWorker(e.target.value)}
+                className="flex-1 bg-background/50 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="w1">✍️ X Poster</option>
+                <option value="w2">💬 X Engagement</option>
+                <option value="w3">🗣️ Reddit Commenter</option>
+                <option value="w4">📝 Reddit Flagship</option>
+                <option value="w5">♻️ Content Recycler</option>
+              </select>
             </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowAddModal(false)} className="flex-1 text-sm py-2.5 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all">Cancel</button>
+              <button onClick={addTask} className="flex-1 text-sm py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all font-semibold">Create Task</button>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-3 text-center">🔒 Custom tasks on Growth+</p>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { workers as allWorkers, workerLearning, activityLog } from "@/data/mockData";
 import { ChannelIcon, StatusDot } from "@/components/Icons";
+import { Star } from "lucide-react";
 
 const Workers = () => {
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
@@ -39,10 +40,11 @@ const Workers = () => {
           <button onClick={() => setSelectedWorker(null)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back</button>
           <div className="w-px h-4 bg-border" />
           <span className="text-lg">{worker.emoji}</span>
-          <span className="font-display font-semibold text-sm">{worker.name}</span>
+          <span className="font-semibold text-sm">{worker.name}</span>
           <StatusDot status={worker.status} />
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge(worker.status)}`}>{worker.status}</span>
-          <div className="ml-auto opacity-40">
+          {worker.nextPost && <span className="text-xs text-muted-foreground ml-auto">Next: {worker.nextPost}</span>}
+          <div className="opacity-40">
             <ChannelIcon channel={worker.channel} className="w-4 h-4" />
           </div>
         </div>
@@ -71,7 +73,7 @@ const Workers = () => {
               <Section title="Your Feedback" items={workerLearning.feedback} color="text-info" icon="◆" />
 
               <div>
-                <h3 className="font-display font-semibold text-sm mb-3">Suggestions</h3>
+                <h3 className="font-semibold text-sm mb-3">Suggestions</h3>
                 <div className="space-y-2">
                   {suggestions.map((s) => (
                     <label key={s.id} className="flex items-start gap-3 glass-card rounded-lg p-3.5 cursor-pointer glow-border">
@@ -88,26 +90,31 @@ const Workers = () => {
               </div>
 
               <div>
-                <h3 className="font-display font-semibold text-sm mb-3">Improvement Timeline</h3>
+                <h3 className="font-semibold text-sm mb-3">Improvement Timeline</h3>
                 <div className="glass-card rounded-lg p-4">
                   <div className="flex items-center gap-4">
                     {[
                       { week: "W1", val: "1.2%", delta: null },
                       { week: "W2", val: "1.8%", delta: "+50%" },
                       { week: "W3", val: "2.3%", delta: "+28%" },
+                      { week: "W4", val: "2.1%", delta: "-9%" },
                     ].map((w, i) => (
                       <div key={w.week} className="flex items-center gap-3">
                         {i > 0 && (
                           <div className="flex items-center gap-1">
                             <div className="w-6 h-px bg-primary/30" />
-                            <span className="text-primary text-[10px] font-display font-bold">→</span>
+                            <span className="text-primary text-[10px] font-bold">→</span>
                             <div className="w-6 h-px bg-primary/30" />
                           </div>
                         )}
                         <div className="text-center">
-                          <span className="text-[10px] text-muted-foreground font-display block">{w.week}</span>
-                          <span className={`text-sm font-display font-bold ${i === 2 ? "text-primary" : "text-foreground"}`}>{w.val}</span>
-                          {w.delta && <span className="text-success text-[10px] font-semibold block">{w.delta}</span>}
+                          <span className="text-[10px] text-muted-foreground block">{w.week}</span>
+                          <span className={`text-sm font-bold ${i === 2 ? "text-primary" : "text-foreground"}`}>{w.val}</span>
+                          {w.delta && (
+                            <span className={`text-[10px] font-semibold block ${w.delta.startsWith("+") ? "text-success" : "text-destructive"}`}>
+                              {w.delta}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -134,7 +141,9 @@ const Workers = () => {
                     )}
                   </div>
                   {a.rating > 0 && (
-                    <span className="text-xs text-primary font-display font-semibold shrink-0">★ {a.rating}/10</span>
+                    <span className="text-xs text-primary font-semibold shrink-0 flex items-center gap-0.5">
+                      <Star className="w-3 h-3" fill="currentColor" /> {a.rating}/10
+                    </span>
                   )}
                 </div>
               ))}
@@ -146,22 +155,26 @@ const Workers = () => {
               <div>
                 <label className="flex items-center justify-between text-sm font-medium mb-2">
                   <span>Volume</span>
-                  <span className="text-primary font-display font-semibold">{volume} posts/day</span>
+                  <span className="text-primary font-semibold">{volume} posts/day</span>
                 </label>
                 <input type="range" min={1} max={10} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full accent-primary" />
               </div>
 
               <div className="space-y-3">
-                <span className="text-sm font-display font-semibold">Content Mix</span>
+                <span className="text-sm font-semibold">Content Mix</span>
                 <SliderRow label="Educational" value={eduMix} onChange={setEduMix} />
                 <SliderRow label="Story" value={storyMix} onChange={setStoryMix} />
                 <SliderRow label="Opinion" value={opinionMix} onChange={setOpinionMix} />
               </div>
 
               <div>
-                <span className="text-sm font-display font-semibold block mb-3">Autonomy Level</span>
+                <span className="text-sm font-semibold block mb-3">Autonomy Level</span>
                 <div className="space-y-2">
-                  {[{ v: "L1", l: "Draft Only", desc: "All content needs your approval" }, { v: "L2", l: "Semi-Auto", desc: "High-confidence posts auto-publish" }, { v: "L3", l: "Full Auto", desc: "Complete autonomy" }].map((o) => (
+                  {[
+                    { v: "L1", l: "Draft Only", desc: "All content needs your approval" },
+                    { v: "L2", l: "Semi-Auto", desc: "High-confidence posts auto-publish" },
+                    { v: "L3", l: "Full Auto", desc: "Complete autonomy" },
+                  ].map((o) => (
                     <label key={o.v} className={`flex items-center gap-3 glass-card rounded-lg p-3 cursor-pointer glow-border ${autonomy === o.v ? "border-primary/30" : ""}`}>
                       <input type="radio" name="autonomy" value={o.v} checked={autonomy === o.v} onChange={() => setAutonomy(o.v)} className="accent-primary" />
                       <div>
@@ -173,7 +186,7 @@ const Workers = () => {
                 </div>
               </div>
 
-              <button className="bg-primary text-primary-foreground text-sm font-display font-semibold rounded-lg px-5 py-2.5 btn-glow hover:opacity-90 transition-all">
+              <button className="bg-primary text-primary-foreground text-sm font-semibold rounded-lg px-5 py-2.5 hover:opacity-90 transition-all">
                 Save Settings
               </button>
             </div>
@@ -186,7 +199,7 @@ const Workers = () => {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-lg font-bold">Workers</h2>
+        <h2 className="text-lg font-bold">Workers</h2>
         <button disabled className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg cursor-not-allowed font-medium">
           Office View <span className="text-[10px] ml-1 text-muted-foreground/50">Coming Soon</span>
         </button>
@@ -197,7 +210,7 @@ const Workers = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">{w.emoji}</span>
-                <span className="font-display font-semibold">{w.name}</span>
+                <span className="font-semibold">{w.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <StatusDot status={w.status} />
@@ -205,19 +218,33 @@ const Workers = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-              <span className="font-mono">{w.postsThisWeek} posts</span>
-              <span className="text-primary font-display font-semibold">★ {w.avgRating}</span>
-            </div>
-            <p className="text-xs text-muted-foreground/80 italic leading-relaxed mb-4 border-l-2 border-primary/20 pl-2.5">"{w.latestLearning}"</p>
-            <button
-              onClick={() => { setSelectedWorker(w.id); setActiveTab("learning"); }}
-              className="text-xs text-primary hover:text-primary/80 font-display font-semibold transition-colors"
-            >
-              Open →
-            </button>
+            {w.nextPost && <p className="text-xs text-muted-foreground mb-2">Next: {w.nextPost}</p>}
 
-            {/* Channel icon — bottom right */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+              <span className="font-mono">{w.postsThisWeek} {w.channel === "X" ? "posts" : "comments"}</span>
+              {w.avgRating > 0 && (
+                <span className="text-primary font-semibold flex items-center gap-0.5">
+                  <Star className="w-3 h-3" fill="currentColor" /> {w.avgRating}
+                </span>
+              )}
+            </div>
+            {w.latestLearning && (
+              <p className="text-xs text-muted-foreground/80 italic leading-relaxed mb-4 border-l-2 border-primary/20 pl-2.5">"{w.latestLearning}"</p>
+            )}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => { setSelectedWorker(w.id); setActiveTab("learning"); }}
+                className="text-xs text-primary hover:text-primary/80 font-semibold transition-colors"
+              >
+                Open →
+              </button>
+              {w.status === "active" && (
+                <button className="text-[10px] text-muted-foreground hover:text-foreground border border-border rounded px-2 py-0.5 transition-colors">
+                  ⏸ Pause
+                </button>
+              )}
+            </div>
+
             <div className="absolute bottom-4 right-4 opacity-25">
               <ChannelIcon channel={w.channel} className="w-4 h-4" />
             </div>
@@ -230,7 +257,7 @@ const Workers = () => {
 
 const Section = ({ title, items, color, icon }: { title: string; items: string[]; color: string; icon: string }) => (
   <div>
-    <h3 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
+    <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
       <span className={`${color} text-xs`}>{icon}</span>
       {title}
     </h3>
@@ -239,7 +266,7 @@ const Section = ({ title, items, color, icon }: { title: string; items: string[]
         <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground group leading-relaxed">
           <span className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${color.replace("text-", "bg-")}`} />
           <span className="flex-1">{item}</span>
-          <button className="text-xs text-muted-foreground/0 group-hover:text-muted-foreground transition-all hover:text-foreground">✎</button>
+          <button className="text-xs text-muted-foreground/0 group-hover:text-muted-foreground transition-all hover:text-foreground">✏️</button>
         </li>
       ))}
     </ul>
@@ -250,7 +277,7 @@ const SliderRow = ({ label, value, onChange }: { label: string; value: number; o
   <div>
     <div className="flex items-center justify-between text-sm mb-1.5">
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground font-display font-medium">{value}%</span>
+      <span className="text-foreground font-medium">{value}%</span>
     </div>
     <input type="range" min={0} max={100} value={value} onChange={(e) => onChange(+e.target.value)} className="w-full accent-primary" />
   </div>
