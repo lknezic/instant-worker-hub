@@ -10,12 +10,14 @@ import Workers from "./pages/Workers";
 import Settings from "./pages/Settings";
 import { Judge, Proof, Safety } from "./pages/Placeholders";
 import AppLayout from "./components/AppLayout";
+import { WorkflowProvider } from "./contexts/WorkflowContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <WorkflowProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
