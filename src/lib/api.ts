@@ -38,7 +38,11 @@ async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): P
 
   if (res.status === 401) {
     clearToken();
-    window.location.href = "/login";
+    // Don't redirect if already on login/verify/pricing pages
+    const path = window.location.pathname;
+    if (!path.startsWith("/login") && !path.startsWith("/auth/") && !path.startsWith("/pricing")) {
+      window.location.href = "/login";
+    }
     throw new Error("Not authenticated");
   }
 
