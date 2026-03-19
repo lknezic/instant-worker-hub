@@ -233,6 +233,7 @@ const VoiceCompliance = ({ data, onSave }: { data: SettingsData; onSave: (u: Par
 const Channels = () => {
   const [xConnected, setXConnected] = useState(true);
   const [redditConnected, setRedditConnected] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
   return (
     <div className="space-y-3">
       <div className="glass-card rounded-xl p-4 glow-border">
@@ -289,14 +290,35 @@ const Channels = () => {
         )}
       </div>
 
-      <div className="glass-card rounded-xl p-4 opacity-40">
+      <div className="glass-card rounded-xl p-4 glow-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-lg">📧</span>
-            <span className="text-sm font-medium">Email</span>
+            <div>
+              <span className="text-sm font-medium">Email</span>
+              <p className="text-xs text-muted-foreground mt-0.5">Newsletter & reactivation emails</p>
+            </div>
           </div>
-          <span className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider">Coming Soon</span>
+          <Toggle on={emailEnabled} onToggle={() => setEmailEnabled(!emailEnabled)} />
         </div>
+        {emailEnabled && (
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-success neon-dot-green" />
+              <span className="text-[10px] text-success font-medium">Active</span>
+            </div>
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>📧</span>
+                <span>Sophie — Newsletter & Nurture</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>💌</span>
+                <span>Maya — Reactivation Specialist</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

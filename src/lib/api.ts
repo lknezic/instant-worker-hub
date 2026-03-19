@@ -197,3 +197,21 @@ export const cloneRules = {
 export const publicProof = {
   get: (shareId: string) => apiFetch(`/proof/public/${shareId}`),
 };
+
+// --- Email ---
+export const email = {
+  run: (params?: { client_id?: string; agent_type?: string; count?: number }) => {
+    const sp = new URLSearchParams();
+    if (params?.client_id) sp.set("client_id", params.client_id);
+    if (params?.agent_type) sp.set("agent_type", params.agent_type);
+    if (params?.count) sp.set("count", String(params.count));
+    return apiFetch<{ status: string; agent_type: string; generated: number; events: Array<{ id: string; agent_name: string; email_type: string; subject: string; review_status: string; guardian_status: string }> }>(
+      `/agents/email/run?${sp}`, { method: "POST" },
+    );
+  },
+
+  send: (eventId: string) =>
+    apiFetch<{ ok: boolean; delivery_status: string; recipient: string; subject: string }>(
+      `/agents/email/send/${eventId}`, { method: "POST" },
+    ),
+};

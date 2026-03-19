@@ -23,6 +23,10 @@ function getWorkerEmoji(agentName: string): string {
     "reddit-comment-answer": "🗣️",
     "reddit-flagship-poster": "📝",
     "content-recycler": "♻️",
+    "email-newsletter": "📧",
+    "email-reactivation": "💌",
+    "email-newsletter-agent": "📧",
+    "email-reactivation-agent": "💌",
   };
   return map[agentName] || "🤖";
 }
@@ -34,11 +38,16 @@ function getWorkerName(agentName: string): string {
     "reddit-comment-answer": "Daniel — Reddit Commenter",
     "reddit-flagship-poster": "James — Content Strategist",
     "content-recycler": "Victor — Content Recycler",
+    "email-newsletter": "Sophie — Email Newsletter",
+    "email-reactivation": "Maya — Reactivation Specialist",
+    "email-newsletter-agent": "Sophie — Email Newsletter",
+    "email-reactivation-agent": "Maya — Reactivation Specialist",
   };
   return map[agentName] || agentName;
 }
 
-function getWorkerChannel(agentName: string): "X" | "Reddit" {
+function getWorkerChannel(agentName: string): "X" | "Reddit" | "Email" {
+  if (agentName.startsWith("email")) return "Email";
   if (agentName.startsWith("reddit")) return "Reddit";
   return "X";
 }
@@ -49,7 +58,7 @@ function agentToWorker(agent: any): Worker {
     emoji: getWorkerEmoji(agent.slug || agent.agent_name),
     name: getWorkerName(agent.slug || agent.agent_name),
     description: agent.description || "",
-    channel: getWorkerChannel(agent.slug || agent.agent_name),
+    channel: getWorkerChannel(agent.slug || agent.agent_name) as any,
     enabled: agent.enabled !== false,
     status: agent.enabled !== false ? "active" : "paused",
     postsThisWeek: agent.posts_this_week || 0,

@@ -12,12 +12,20 @@ export const RedditIcon = ({ className = "w-4 h-4" }: { className?: string }) =>
   </svg>
 );
 
-export const ChannelBadge = ({ channel }: { channel: "X" | "Reddit" }) => {
+export const ChannelBadge = ({ channel }: { channel: "X" | "Reddit" | "Email" }) => {
   if (channel === "X") {
     return (
       <div className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-foreground/10 text-foreground">
         <XIcon className="w-2.5 h-2.5" />
         <span>X</span>
+      </div>
+    );
+  }
+  if (channel === "Email") {
+    return (
+      <div className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
+        <span className="text-[10px]">📧</span>
+        <span>Email</span>
       </div>
     );
   }
@@ -30,8 +38,9 @@ export const ChannelBadge = ({ channel }: { channel: "X" | "Reddit" }) => {
 };
 
 /** Small inline channel icon for compact contexts */
-export const ChannelIcon = ({ channel, className = "w-3.5 h-3.5" }: { channel: "X" | "Reddit"; className?: string }) => {
+export const ChannelIcon = ({ channel, className = "w-3.5 h-3.5" }: { channel: "X" | "Reddit" | "Email"; className?: string }) => {
   if (channel === "X") return <XIcon className={`${className} text-foreground/60`} />;
+  if (channel === "Email") return <span className="text-amber-400/80">📧</span>;
   return <RedditIcon className={`${className} text-warning/80`} />;
 };
 

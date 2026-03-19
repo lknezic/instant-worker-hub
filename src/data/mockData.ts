@@ -5,7 +5,7 @@ export interface Worker {
   emoji: string;
   name: string;
   description: string;
-  channel: "X" | "Reddit";
+  channel: "X" | "Reddit" | "Email";
   enabled: boolean;
   status: "active" | "paused";
   postsThisWeek: number;
@@ -27,12 +27,14 @@ export interface ReviewCard {
   workerId: string;
   workerEmoji: string;
   workerName: string;
-  channel: "X" | "Reddit";
+  channel: "X" | "Reddit" | "Email";
   skill: string;
   content: string;
-  status: "pending" | "approved" | "posted" | "rejected";
+  status: "pending" | "approved" | "posted" | "rejected" | "blocked";
   rating: number;
   metrics?: { views: number; saves: number; comments: number };
+  deliveryStatus?: string | null;
+  emailMetadata?: { subject?: string; preview_text?: string; body_html?: string; email_type?: string; cta_text?: string; cta_url?: string } | null;
 }
 
 export interface Finding {

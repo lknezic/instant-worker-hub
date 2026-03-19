@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { workflowQuestions, reviewCards as mockReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
-import { events as eventsApi, insights } from "@/lib/api";
+import { events as eventsApi, insights, email as emailApi } from "@/lib/api";
 import { Check, ChevronRight, Sparkles, TrendingUp, Eye } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import ThreadDisplay from "@/components/ThreadDisplay";
@@ -60,6 +60,8 @@ function getWorkerEmoji(agentName: string): string {
     "reddit-comment-answer": "🗣️",
     "reddit-flagship-poster": "📝",
     "content-recycler": "♻️",
+    "email-newsletter-agent": "📧",
+    "email-reactivation-agent": "💌",
   };
   return map[agentName] || "🤖";
 }
@@ -71,22 +73,39 @@ function getWorkerName(agentName: string): string {
     "reddit-comment-answer": "Daniel — Reddit Commenter",
     "reddit-flagship-poster": "James — Content Strategist",
     "content-recycler": "Victor — Content Recycler",
+    "email-newsletter-agent": "Sophie — Email Newsletter",
+    "email-reactivation-agent": "Maya — Reactivation Specialist",
   };
   return map[agentName] || agentName;
 }
 
+function getChannelLabel(channel: string): "X" | "Reddit" | "Email" {
+  if (channel === "email") return "Email";
+  if (channel === "reddit") return "Reddit";
+  return "X";
+}
+
 function eventToCard(ev: any): ReviewCard {
+  const isEmail = ev.channel === "email";
+  const emailMeta = isEmail && ev.email_metadata
+    ? (typeof ev.email_metadata === "string" ? JSON.parse(ev.email_metadata) : ev.email_metadata)
+    : null;
+
   return {
     id: String(ev.id),
     workerId: ev.agent_name,
     workerEmoji: getWorkerEmoji(ev.agent_name),
     workerName: getWorkerName(ev.agent_name),
-    channel: ev.channel === "x" ? "X" : "Reddit",
-    skill: ev.skill_name || "unknown",
-    content: ev.final_text || ev.draft_text || "",
+    channel: getChannelLabel(ev.channel) as any,
+    skill: emailMeta?.email_type || ev.skill_name || "unknown",
+    content: isEmail
+      ? `📧 ${emailMeta?.subject || "Email Draft"}\n\n${emailMeta?.preview_text || ev.final_text || ev.draft_text || ""}`
+      : (ev.final_text || ev.draft_text || ""),
     status: ev.review_status as any,
     rating: ev.review_rating || 0,
     metrics: ev.impressions ? { views: ev.impressions, saves: ev.bookmarks || 0, comments: ev.replies || 0 } : undefined,
+    deliveryStatus: isEmail ? (ev.delivery_status || null) : undefined,
+    emailMetadata: emailMeta,
   };
 }
 
@@ -224,6 +243,18 @@ const TodayWorkflow = () => {
       await eventsApi.update(cardId, { review_status: "approved" });
     } catch {
       // API not available — local state already updated
+    }
+  }, []);
+
+  const handleSendEmail = useCallback(async (cardId: string) => {
+    try {
+      const result = await emailApi.send(cardId);
+      if (result.ok) {
+        setReviewCards((prev) => prev.map((c) => c.id === cardId ? { ...c, status: "posted" as const, deliveryStatus: "sent" } : c));
+        toast(`📧 Email sent to ${result.recipient}`, { duration: 3000 });
+      }
+    } catch (e: any) {
+      toast(`❌ Send failed: ${e.message}`, { duration: 4000 });
     }
   }, []);
 
@@ -418,8 +449,22 @@ const TodayWorkflow = () => {
                             <span className="text-xl">{card.workerEmoji}</span>
                             <span className="text-sm font-semibold">{card.workerName}</span>
                           </div>
-                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{card.skill}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                              card.channel === "Email" ? "bg-amber-500/10 text-amber-400" :
+                              card.channel === "Reddit" ? "bg-orange-500/10 text-orange-400" :
+                              "bg-primary/10 text-primary"
+                            }`}>{card.channel}</span>
+                            <span className="text-[10px] bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-full font-medium">{card.skill}</span>
+                          </div>
                         </div>
+
+                        {/* Email subject line */}
+                        {card.emailMetadata?.subject && (
+                          <div className="mb-2 text-sm font-semibold text-foreground">
+                            {card.emailMetadata.subject}
+                          </div>
+                        )}
 
                         {editingCard === card.id ? (
                           <div className="mb-4">
@@ -493,6 +538,44 @@ const TodayWorkflow = () => {
                   <p className="text-sm font-medium mt-2">All content reviewed</p>
                 </div>
               )}
+
+              {/* Approved emails ready to send */}
+              {(() => {
+                const approvedEmails = reviewCards.filter((c) => c.channel === "Email" && c.status === "approved");
+                if (approvedEmails.length === 0) return null;
+                return (
+                  <div className="mt-6 animate-fade-in">
+                    <h3 className="text-sm font-semibold mb-3">📧 {approvedEmails.length} email{approvedEmails.length !== 1 ? "s" : ""} ready to send</h3>
+                    <div className="space-y-2">
+                      {approvedEmails.map((card) => (
+                        <div key={card.id} className="glass-card rounded-xl p-4 flex items-center justify-between glow-border">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <span className="text-lg shrink-0">{card.workerEmoji}</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">{card.emailMetadata?.subject || "Email Draft"}</p>
+                              <p className="text-xs text-muted-foreground">{card.emailMetadata?.email_type || "newsletter"}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {card.deliveryStatus === "sent" ? (
+                              <span className="text-xs text-success font-medium flex items-center gap-1"><Check className="w-3 h-3" /> Sent</span>
+                            ) : card.deliveryStatus === "failed" ? (
+                              <span className="text-xs text-destructive font-medium">Failed</span>
+                            ) : (
+                              <button
+                                onClick={() => handleSendEmail(card.id)}
+                                className="text-xs font-medium px-4 py-2 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition-colors"
+                              >
+                                Send Email
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {allReviewed && (
                 <div className="mt-6 flex justify-between animate-fade-in">
