@@ -11,7 +11,7 @@ interface AIPromptBoxProps {
   vanishPlaceholders?: string[];
 }
 
-const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a message..." }: AIPromptBoxProps) => {
+const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a message...", vanishPlaceholders }: AIPromptBoxProps) => {
   const [value, setValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
