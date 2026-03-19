@@ -262,25 +262,43 @@ const Workers = () => {
                 <Section title="Your Feedback" items={workerLearning.feedback} color="text-info" icon="◆" />
               )}
 
-              <div>
-                <h3 className="font-semibold text-sm mb-3">Suggestions</h3>
-                <div className="space-y-2">
-                  {suggestions.map((s) => (
-                    <label key={s.id} className="flex items-start gap-3 glass-card rounded-lg p-3.5 cursor-pointer glow-border">
-                      <input
-                        type="checkbox"
-                        checked={s.applied}
-                        onChange={() => setSuggestions((prev) => prev.map((item) => item.id === s.id ? { ...item, applied: !item.applied } : item))}
-                        className="mt-0.5 accent-primary"
-                      />
-                      <span className={`text-sm leading-relaxed ${s.applied ? "text-muted-foreground line-through" : ""}`}>{s.text}</span>
-                    </label>
-                  ))}
+              {(() => {
+                // Build suggestions from Judge data: worker's add_do items not already in "Doing More Of",
+                // plus global wins from global_insights as fallback
+                const globalInsights = latestScorecard?.global_insights || {};
+                if (typeof globalInsights === "string") { try { Object.assign(globalInsights, JSON.parse(globalInsights)); } catch {} }
+                const globalWins: string[] = (globalInsights as any)?.wins || [];
+                // Use doMore items as applied suggestions, globalWins as unapplied
+                const realSuggestions = globalWins
+                  .filter((w: string) => !doMore.includes(w))
+                  .slice(0, 5)
+                  .map((text: string, i: number) => ({ id: `judge-${i}`, text, applied: false }));
+                const suggestionsToShow = realSuggestions.length > 0 ? realSuggestions : suggestions;
+                const isRealSuggestions = realSuggestions.length > 0;
+
+                return (
+                <div>
+                  <h3 className="font-semibold text-sm mb-3">
+                    Suggestions
+                    {isRealSuggestions && <span className="text-[10px] text-primary ml-2 font-normal">from Judge analysis</span>}
+                  </h3>
+                  <div className="space-y-2">
+                    {suggestionsToShow.map((s: any) => (
+                      <div key={s.id} className="flex items-start gap-3 glass-card rounded-lg p-3.5 glow-border">
+                        <span className="text-success text-xs mt-0.5">💡</span>
+                        <span className="text-sm leading-relaxed text-muted-foreground">{s.text}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+                );
+              })()}
 
               <div>
-                <h3 className="font-semibold text-sm mb-3">Improvement Timeline</h3>
+                <h3 className="font-semibold text-sm mb-3">
+                  Improvement Timeline
+                  <span className="text-[10px] text-muted-foreground ml-2 font-normal">Preview — real trends coming soon</span>
+                </h3>
                 <div className="glass-card rounded-lg p-4">
                   <div className="flex items-center gap-4">
                     {[
