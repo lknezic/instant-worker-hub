@@ -92,6 +92,11 @@ export const events = {
 export const agents = {
   catalog: () => apiFetch<{ agents: unknown[] }>("/agents/catalog"),
   mine: () => apiFetch<{ agents: unknown[] }>("/agents/mine"),
+  timeline: (agentName: string, weeks?: number) => {
+    const sp = new URLSearchParams({ agent_name: agentName });
+    if (weeks) sp.set("weeks", String(weeks));
+    return apiFetch<{ agent_name: string; weeks: Array<{ week: string; week_start: string; week_end: string; posts: number; avg_rating: number | null; avg_score: number | null; impressions: number }> }>(`/agents/timeline?${sp}`);
+  },
   enable: (slug: string) => apiFetch(`/agents/${slug}/enable`, { method: "POST" }),
   disable: (slug: string) => apiFetch(`/agents/${slug}/disable`, { method: "POST" }),
   config: (slug: string, data: Record<string, unknown>) =>

@@ -70,6 +70,7 @@ const Workers = () => {
   const [suggestions, setSuggestions] = useState(workerLearning.suggestions);
   const [latestScorecard, setLatestScorecard] = useState<any>(null);
   const [realActivity, setRealActivity] = useState<Array<{ id: string; status: string; date: string; content: string; metrics?: { views: number; saves: number; comments: number }; rating: number }>>([]);
+  const [timelineData, setTimelineData] = useState<Array<{ week: string; posts: number; avg_rating: number | null; avg_score: number | null; impressions: number }>>([]);
 
   // Slug → agent_name mapping for matching spec_deltas
   const slugToAgentName: Record<string, string> = {
@@ -136,6 +137,15 @@ const Workers = () => {
         }
       } catch {
         if (!cancelled) setRealActivity([]);
+      }
+      // Fetch timeline data
+      try {
+        const tl = await agentsApi.timeline(agentName, 6);
+        if (!cancelled && tl.weeks) {
+          setTimelineData(tl.weeks);
+        }
+      } catch {
+        if (!cancelled) setTimelineData([]);
       }
     })();
     return () => { cancelled = true; };
@@ -295,44 +305,42 @@ const Workers = () => {
               })()}
 
               <div>
-                <h3 className="font-semibold text-sm mb-3">
-                  Improvement Timeline
-                  <span className="text-[10px] text-muted-foreground ml-2 font-normal">Preview — real trends coming soon</span>
-                </h3>
+                <h3 className="font-semibold text-sm mb-3">Improvement Timeline</h3>
                 <div className="glass-card rounded-lg p-4">
-                  <div className="flex items-center gap-4">
-                    {[
-                      { week: "W1", val: "1.2%", delta: null },
-                      { week: "W2", val: "1.8%", delta: "+50%" },
-                      { week: "W3", val: "2.3%", delta: "+28%" },
-                      { week: "W4", val: "2.1%", delta: "-9%" },
-                    ].map((w, i) => (
-                      <div key={w.week} className="flex items-center gap-3">
-                        {i > 0 && (
-                          <div className="flex items-center gap-1">
-                            <div className="w-6 h-px bg-primary/30" />
-                            <span className="text-primary text-[10px] font-bold">→</span>
-                            <div className="w-6 h-px bg-primary/30" />
+                  {timelineData.length > 0 && timelineData.some(w => w.posts > 0) ? (
+                    <div className="flex items-end gap-3">
+                      {timelineData.map((w, i) => {
+                        const hasData = w.posts > 0;
+                        const metric = w.avg_rating != null ? w.avg_rating : w.avg_score != null ? (w.avg_score / 10) : 0;
+                        const maxMetric = Math.max(...timelineData.filter(d => d.posts > 0).map(d => d.avg_rating ?? (d.avg_score ? d.avg_score / 10 : 0)));
+                        const barHeight = hasData && maxMetric > 0 ? Math.max(16, (metric / maxMetric) * 64) : 8;
+
+                        return (
+                          <div key={w.week} className="flex-1 flex flex-col items-center gap-1">
+                            {hasData ? (
+                              <>
+                                <span className="text-[10px] font-bold text-primary">{metric.toFixed(1)}</span>
+                                <div
+                                  className="w-full rounded-t-sm bg-primary/30 transition-all"
+                                  style={{ height: barHeight }}
+                                />
+                                <span className="text-[9px] text-muted-foreground">{w.posts}p</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-[10px] text-muted-foreground">—</span>
+                                <div className="w-full rounded-t-sm bg-muted/30 h-2" />
+                                <span className="text-[9px] text-muted-foreground">0p</span>
+                              </>
+                            )}
+                            <span className="text-[9px] text-muted-foreground">{w.week}</span>
                           </div>
-                        )}
-                        <div className="text-center">
-                          <span className="text-[10px] text-muted-foreground block">{w.week}</span>
-                          <AnimatedNumber
-                            value={w.val}
-                            duration={800 + i * 300}
-                            className={`text-sm font-bold ${i === 2 ? "text-primary" : "text-foreground"}`}
-                          />
-                          {w.delta && (
-                            <AnimatedNumber
-                              value={w.delta}
-                              duration={1000 + i * 300}
-                              className={`text-[10px] font-semibold block ${w.delta.startsWith("+") ? "text-success" : "text-destructive"}`}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">Timeline builds as your workers produce content each week.</p>
+                  )}
                 </div>
               </div>
 
