@@ -62,11 +62,11 @@ export interface Invoice {
 // ===== WORKERS =====
 
 export const workers: Worker[] = [
-  { id: "w1", emoji: "✍️", name: "X Poster", description: "Crafts original tweets that drive engagement", channel: "X", enabled: true, status: "active", postsThisWeek: 15, avgRating: 7.8, latestLearning: "Numbers get 3x more saves", nextPost: "14:00 CET" },
-  { id: "w2", emoji: "💬", name: "X Engagement", description: "Replies to relevant conversations in your niche", channel: "X", enabled: true, status: "active", postsThisWeek: 24, avgRating: 6.9, latestLearning: "Personal anecdotes increase reply rate by 40%", nextPost: "15:30 CET" },
-  { id: "w3", emoji: "🗣️", name: "Reddit Commenter", description: "Adds helpful comments in target subreddits", channel: "Reddit", enabled: true, status: "active", postsThisWeek: 12, avgRating: 7.2, latestLearning: "Short comments (2-3 sentences) get more upvotes", nextPost: "16:00 CET" },
-  { id: "w4", emoji: "📝", name: "Reddit Flagship", description: "Writes long-form Reddit posts that establish authority", channel: "Reddit", enabled: true, status: "active", postsThisWeek: 3, avgRating: 8.1, latestLearning: "Case study format outperforms listicles 2:1", nextPost: "Tomorrow" },
-  { id: "w5", emoji: "♻️", name: "Content Recycler", description: "Repurposes top content across channels", channel: "X", enabled: false, status: "paused", postsThisWeek: 0, avgRating: 0, latestLearning: "" },
+  { id: "w1", emoji: "✍️", name: "Alex — X Content Writer", description: "Writes tweets, threads, and articles on X", channel: "X", enabled: true, status: "active", postsThisWeek: 15, avgRating: 7.8, latestLearning: "Numbers get 3x more saves", nextPost: "14:00 CET" },
+  { id: "w2", emoji: "💬", name: "Marcus — Engagement Specialist", description: "Replies to relevant conversations", channel: "X", enabled: true, status: "active", postsThisWeek: 24, avgRating: 6.9, latestLearning: "Personal anecdotes increase reply rate by 40%", nextPost: "15:30 CET" },
+  { id: "w3", emoji: "🗣️", name: "Daniel — Reddit Commenter", description: "Answers questions in target subreddits", channel: "Reddit", enabled: true, status: "active", postsThisWeek: 12, avgRating: 7.2, latestLearning: "Short comments (2-3 sentences) get more upvotes", nextPost: "16:00 CET" },
+  { id: "w4", emoji: "📝", name: "James — Content Strategist", description: "Creates in-depth guides and case studies", channel: "Reddit", enabled: true, status: "active", postsThisWeek: 3, avgRating: 8.1, latestLearning: "Case study format outperforms listicles 2:1", nextPost: "Tomorrow" },
+  { id: "w5", emoji: "♻️", name: "Victor — Content Recycler", description: "Repurposes top content across channels", channel: "X", enabled: false, status: "paused", postsThisWeek: 0, avgRating: 0, latestLearning: "" },
 ];
 
 // ===== WORKFLOW QUESTIONS =====
@@ -75,14 +75,14 @@ export const workflowQuestions: WorkflowQuestion[] = [
   {
     id: "q1",
     workerEmoji: "✍️",
-    workerName: "X Poster",
+    workerName: "Alex — X Content Writer",
     question: "You've never posted about meal prep. Should I add it to the rotation?",
     options: [{ label: "Yes, add it", action: "add" }, { label: "No, skip it", action: "skip" }],
   },
   {
     id: "q2",
     workerEmoji: "🗣️",
-    workerName: "Reddit Commenter",
+    workerName: "Daniel — Reddit Commenter",
     question: "I found a thread about your competitor. Should I respond?",
     options: [{ label: "Yes, reply", action: "reply" }, { label: "No, ignore", action: "ignore" }],
   },
@@ -98,13 +98,13 @@ export const workflowQuestions: WorkflowQuestion[] = [
 // ===== REVIEW CARDS (7 pending) =====
 
 export const reviewCards: ReviewCard[] = [
-  { id: "r1", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "value-tweet", content: "80% of people who start a workout program quit in the first 30 days. The other 20% all have one thing in common: a system.", status: "pending", rating: 0 },
-  { id: "r2", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "contrarian-hook", content: "Unpopular opinion: Selling puts on quality stocks you want to own is less risky than buying them outright. Here's the math...", status: "pending", rating: 0 },
-  { id: "r3", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", channel: "Reddit", skill: "helpful-reply", content: "Great question! Covered calls on dividend stocks can boost your yield by 2-4% annually.", status: "pending", rating: 0 },
-  { id: "r4", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", channel: "X", skill: "quote-tweet", content: "This is exactly why implied volatility matters more than stock direction.", status: "pending", rating: 0 },
-  { id: "r5", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "story-tweet", content: "Lost everything in my first year. Rebuilt with a system. Here's what I learned...", status: "pending", rating: 0 },
-  { id: "r6", workerId: "w4", workerEmoji: "📝", workerName: "Reddit Flagship", channel: "Reddit", skill: "journal-post", content: "Week 12 journal: $1,847 premium, 3 assignments, 2 rolls...", status: "pending", rating: 0 },
-  { id: "r7", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", channel: "Reddit", skill: "helpful-reply", content: "Position sizing is everything. Never risk more than 5%...", status: "pending", rating: 0 },
+  { id: "r1", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "value-tweet", content: "80% of people who start a workout program quit in the first 30 days. The other 20% all have one thing in common: a system.", status: "pending", rating: 0 },
+  { id: "r2", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "contrarian-hook", content: "Unpopular opinion: Selling puts on quality stocks you want to own is less risky than buying them outright. Here's the math...", status: "pending", rating: 0 },
+  { id: "r3", workerId: "w3", workerEmoji: "🗣️", workerName: "Daniel — Reddit Commenter", channel: "Reddit", skill: "helpful-reply", content: "Great question! Covered calls on dividend stocks can boost your yield by 2-4% annually.", status: "pending", rating: 0 },
+  { id: "r4", workerId: "w2", workerEmoji: "💬", workerName: "Marcus — Engagement Specialist", channel: "X", skill: "quote-tweet", content: "This is exactly why implied volatility matters more than stock direction.", status: "pending", rating: 0 },
+  { id: "r5", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "story-tweet", content: "Lost everything in my first year. Rebuilt with a system. Here's what I learned...", status: "pending", rating: 0 },
+  { id: "r6", workerId: "w4", workerEmoji: "📝", workerName: "James — Content Strategist", channel: "Reddit", skill: "journal-post", content: "Week 12 journal: $1,847 premium, 3 assignments, 2 rolls...", status: "pending", rating: 0 },
+  { id: "r7", workerId: "w3", workerEmoji: "🗣️", workerName: "Daniel — Reddit Commenter", channel: "Reddit", skill: "helpful-reply", content: "Position sizing is everything. Never risk more than 5%...", status: "pending", rating: 0 },
 ];
 
 // ===== KANBAN CARDS (for Dashboard) =====
@@ -113,14 +113,14 @@ export const kanbanCards: ReviewCard[] = [
   // Pending
   ...reviewCards,
   // Approved
-  { id: "k8", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "thread-opener", content: "I spent 6 months studying what makes B2B content go viral. Here are 7 patterns I found (thread) 🧵", status: "approved", rating: 8 },
-  { id: "k9", workerId: "w2", workerEmoji: "💬", workerName: "X Engagement", channel: "X", skill: "thoughtful-reply", content: "This is so true. The companies winning at content marketing aren't the ones with the biggest budgets — they're the ones with the most authentic voice.", status: "approved", rating: 7 },
+  { id: "k8", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "thread-opener", content: "I spent 6 months studying what makes B2B content go viral. Here are 7 patterns I found (thread) 🧵", status: "approved", rating: 8 },
+  { id: "k9", workerId: "w2", workerEmoji: "💬", workerName: "Marcus — Engagement Specialist", channel: "X", skill: "thoughtful-reply", content: "This is so true. The companies winning at content marketing aren't the ones with the biggest budgets — they're the ones with the most authentic voice.", status: "approved", rating: 7 },
   // Posted
-  { id: "k10", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "story-tweet", content: "Lost $4,200 on my first trade. Today I make $3K/month...", status: "posted", rating: 8, metrics: { views: 4200, saves: 89, comments: 23 } },
-  { id: "k11", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "value-tweet", content: "Numbers that changed my trading: 45 DTE, 0.30 delta, 2% max risk per position...", status: "posted", rating: 9, metrics: { views: 6800, saves: 142, comments: 31 } },
-  { id: "k12", workerId: "w3", workerEmoji: "🗣️", workerName: "Reddit Commenter", channel: "Reddit", skill: "helpful-reply", content: "The key with CSPs is position sizing. Never allocate more than 5% of your portfolio to a single position...", status: "posted", rating: 7, metrics: { views: 1100, saves: 34, comments: 8 } },
+  { id: "k10", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "story-tweet", content: "Lost $4,200 on my first trade. Today I make $3K/month...", status: "posted", rating: 8, metrics: { views: 4200, saves: 89, comments: 23 } },
+  { id: "k11", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "value-tweet", content: "Numbers that changed my trading: 45 DTE, 0.30 delta, 2% max risk per position...", status: "posted", rating: 9, metrics: { views: 6800, saves: 142, comments: 31 } },
+  { id: "k12", workerId: "w3", workerEmoji: "🗣️", workerName: "Daniel — Reddit Commenter", channel: "Reddit", skill: "helpful-reply", content: "The key with CSPs is position sizing. Never allocate more than 5% of your portfolio to a single position...", status: "posted", rating: 7, metrics: { views: 1100, saves: 34, comments: 8 } },
   // Rejected
-  { id: "k13", workerId: "w1", workerEmoji: "✍️", workerName: "X Poster", channel: "X", skill: "promo-tweet", content: "Ready to start? Sign up today!", status: "rejected", rating: 3 },
+  { id: "k13", workerId: "w1", workerEmoji: "✍️", workerName: "Alex — X Content Writer", channel: "X", skill: "promo-tweet", content: "Ready to start? Sign up today!", status: "rejected", rating: 3 },
 ];
 
 // ===== IMPROVEMENT DATA =====
@@ -149,8 +149,8 @@ export const workerLearning = {
 };
 
 export const improvementsSummary = [
-  { workerEmoji: "✍️", workerName: "X Poster", learned: "Specific numbers get 3x more saves", stopped: "Generic motivational tweets" },
-  { workerEmoji: "🗣️", workerName: "Reddit Commenter", learned: "Short comments (2-3 sentences) get more upvotes than long explanations", stopped: null },
+  { workerEmoji: "✍️", workerName: "Alex — X Content Writer", learned: "Specific numbers get 3x more saves", stopped: "Generic motivational tweets" },
+  { workerEmoji: "🗣️", workerName: "Daniel — Reddit Commenter", learned: "Short comments (2-3 sentences) get more upvotes than long explanations", stopped: null },
 ];
 
 export const overallImprovement = "Engagement up 18% vs last week ✅";
@@ -160,10 +160,10 @@ export const overallImprovement = "Engagement up 18% vs last week ✅";
 export const weeklyPillar = {
   title: "Why 80% of fitness programs fail in 30 days",
   angles: [
-    { worker: "X Poster", plan: "3 threads on quitting patterns" },
-    { worker: "X Engagement", plan: "Reply to fitness beginner posts" },
-    { worker: "Reddit Commenter", plan: 'Answer "why do I keep quitting?" posts' },
-    { worker: "Reddit Flagship", plan: '"1,000 clients taught me this" post' },
+    { worker: "Alex — X Content Writer", plan: "3 threads on quitting patterns" },
+    { worker: "Marcus — Engagement Specialist", plan: "Reply to fitness beginner posts" },
+    { worker: "Daniel — Reddit Commenter", plan: 'Answer "why do I keep quitting?" posts' },
+    { worker: "James — Content Strategist", plan: '"1,000 clients taught me this" post' },
   ],
 };
 

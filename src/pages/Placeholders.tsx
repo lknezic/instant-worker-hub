@@ -1,8 +1,8 @@
 const mockJudgeData = [
-  { worker: "X Poster", grade: "A-", trend: "↗", metric: "2.6% engagement" },
-  { worker: "X Engagement", grade: "B+", trend: "→", metric: "1.4% reply rate" },
-  { worker: "Reddit Commenter", grade: "B", trend: "↗", metric: "2.2% upvote rate" },
-  { worker: "Reddit Flagship", grade: "A", trend: "↗", metric: "3.4% engagement" },
+  { worker: "Alex — X Content Writer", grade: "A-", trend: "↗", metric: "2.6% engagement" },
+  { worker: "Marcus — Engagement Specialist", grade: "B+", trend: "→", metric: "1.4% reply rate" },
+  { worker: "Daniel — Reddit Commenter", grade: "B", trend: "↗", metric: "2.2% upvote rate" },
+  { worker: "James — Content Strategist", grade: "A", trend: "↗", metric: "3.4% engagement" },
 ];
 
 const mockProofData = [

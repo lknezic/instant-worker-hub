@@ -25,11 +25,11 @@ function getWorkerEmoji(agentName: string): string {
 
 function getWorkerName(agentName: string): string {
   const map: Record<string, string> = {
-    "x-tweet-thread-poster": "X Poster",
-    "x-engagement-agent": "X Engagement",
-    "reddit-comment-answer": "Reddit Commenter",
-    "reddit-flagship-poster": "Reddit Flagship",
-    "content-recycler": "Content Recycler",
+    "x-tweet-thread-poster": "Alex — X Content Writer",
+    "x-engagement-agent": "Marcus — Engagement Specialist",
+    "reddit-comment-answer": "Daniel — Reddit Commenter",
+    "reddit-flagship-poster": "James — Content Strategist",
+    "content-recycler": "Victor — Content Recycler",
   };
   return map[agentName] || agentName;
 }
@@ -97,11 +97,11 @@ const Dashboard = () => {
   const addTask = () => {
     if (!newTaskContent.trim()) return;
     const workerMap: Record<string, { emoji: string; name: string; channel: "X" | "Reddit" }> = {
-      w1: { emoji: "✍️", name: "X Poster", channel: "X" },
-      w2: { emoji: "💬", name: "X Engagement", channel: "X" },
-      w3: { emoji: "🗣️", name: "Reddit Commenter", channel: "Reddit" },
-      w4: { emoji: "📝", name: "Reddit Flagship", channel: "Reddit" },
-      w5: { emoji: "♻️", name: "Content Recycler", channel: "X" },
+      w1: { emoji: "✍️", name: "Alex — X Content Writer", channel: "X" },
+      w2: { emoji: "💬", name: "Marcus — Engagement Specialist", channel: "X" },
+      w3: { emoji: "🗣️", name: "Daniel — Reddit Commenter", channel: "Reddit" },
+      w4: { emoji: "📝", name: "James — Content Strategist", channel: "Reddit" },
+      w5: { emoji: "♻️", name: "Victor — Content Recycler", channel: "X" },
     };
     const w = workerMap[newTaskWorker];
     const newCard: ReviewCard = {
@@ -268,11 +268,11 @@ const Dashboard = () => {
                 onChange={(e) => setNewTaskWorker(e.target.value)}
                 className="flex-1 bg-background/50 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="w1">✍️ X Poster</option>
-                <option value="w2">💬 X Engagement</option>
-                <option value="w3">🗣️ Reddit Commenter</option>
-                <option value="w4">📝 Reddit Flagship</option>
-                <option value="w5">♻️ Content Recycler</option>
+                <option value="w1">✍️ Alex — X Content Writer</option>
+                <option value="w2">💬 Marcus — Engagement Specialist</option>
+                <option value="w3">🗣️ Daniel — Reddit Commenter</option>
+                <option value="w4">📝 James — Content Strategist</option>
+                <option value="w5">♻️ Victor — Content Recycler</option>
               </select>
             </div>
             <div className="flex gap-2">

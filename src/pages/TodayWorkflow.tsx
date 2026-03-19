@@ -48,7 +48,7 @@ const bestPost = {
   impressions: 6800,
   saves: 142,
   comments: 31,
-  workerName: "X Poster",
+  workerName: "Alex — X Content Writer",
   workerEmoji: "✍️",
 };
 
@@ -65,11 +65,11 @@ function getWorkerEmoji(agentName: string): string {
 
 function getWorkerName(agentName: string): string {
   const map: Record<string, string> = {
-    "x-tweet-thread-poster": "X Poster",
-    "x-engagement-agent": "X Engagement",
-    "reddit-comment-answer": "Reddit Commenter",
-    "reddit-flagship-poster": "Reddit Flagship",
-    "content-recycler": "Content Recycler",
+    "x-tweet-thread-poster": "Alex — X Content Writer",
+    "x-engagement-agent": "Marcus — Engagement Specialist",
+    "reddit-comment-answer": "Daniel — Reddit Commenter",
+    "reddit-flagship-poster": "James — Content Strategist",
+    "content-recycler": "Victor — Content Recycler",
   };
   return map[agentName] || agentName;
 }
@@ -136,6 +136,16 @@ const TodayWorkflow = () => {
   const [done, setDone] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const { setTodayComplete } = useWorkflow();
+  const [realQuestions, setRealQuestions] = useState<typeof workflowQuestions | null>(null);
+
+  useEffect(() => {
+    insights.workflowQuestions()
+      .then(d => { if (d.questions?.length) setRealQuestions(d.questions as typeof workflowQuestions); })
+      .catch(() => {});  // fall back to mock
+  }, []);
+
+  // Use real questions if available, otherwise mock
+  const questions = realQuestions || workflowQuestions;
 
   // Fetch pending events from API, fall back to mock data
   useEffect(() => {
@@ -154,7 +164,7 @@ const TodayWorkflow = () => {
   }, []);
 
   const pendingReview = reviewCards.filter((c) => c.status === "pending");
-  const allQuestionsAnswered = answeredQuestions.size >= workflowQuestions.length;
+  const allQuestionsAnswered = answeredQuestions.size >= questions.length;
   const allReviewed = pendingReview.length === 0;
   const isTier3 = false;
 
@@ -221,6 +231,14 @@ const TodayWorkflow = () => {
       setCurrentStep(4);
     } else {
       setCurrentStep((s) => s + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep === 4 && !isTier3) {
+      setCurrentStep(2);  // Skip strategy step going back too
+    } else {
+      setCurrentStep(s => Math.max(0, s - 1));
     }
   };
 
@@ -312,11 +330,11 @@ const TodayWorkflow = () => {
           {/* STEP 1: Answer Questions */}
           {currentStep === 0 && (
             <div className="animate-fade-in">
-              <h2 className="text-lg font-bold mb-1">🔔 {workflowQuestions.length} questions from your team</h2>
+              <h2 className="text-lg font-bold mb-1">🔔 {questions.length} questions from your team</h2>
               <p className="text-sm text-muted-foreground mb-6">Your workers need your input before they start today.</p>
 
               <div className="space-y-3">
-                {workflowQuestions.map((q) => {
+                {questions.map((q) => {
                   const answered = answeredQuestions.has(q.id);
                   return (
                     <div key={q.id} className={`glass-card rounded-xl p-4 transition-all ${answered ? "opacity-50 border-l-2 border-success" : "glow-border"}`}>
@@ -470,7 +488,10 @@ const TodayWorkflow = () => {
               )}
 
               {allReviewed && (
-                <div className="mt-6 flex justify-end animate-fade-in">
+                <div className="mt-6 flex justify-between animate-fade-in">
+                  <button onClick={prevStep} className="text-sm text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5">
+                    ← Back
+                  </button>
                   <button onClick={nextStep} className="bg-primary text-primary-foreground text-sm font-semibold rounded-lg px-5 py-2.5 hover:opacity-90 transition-all flex items-center gap-1.5">
                     Next step <ChevronRight className="w-4 h-4" />
                   </button>
@@ -537,7 +558,10 @@ const TodayWorkflow = () => {
                 <CompetitorWatch />
               </div>
 
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-between">
+                <button onClick={prevStep} className="text-sm text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5">
+                  ← Back
+                </button>
                 <button onClick={nextStep} className="bg-primary text-primary-foreground text-sm font-semibold rounded-lg px-5 py-2.5 hover:opacity-90 transition-all flex items-center gap-1.5">
                   Got it <ChevronRight className="w-4 h-4" />
                 </button>
@@ -621,6 +645,12 @@ const TodayWorkflow = () => {
                 </button>
                 <button onClick={handleComplete} className="w-full bg-primary text-primary-foreground text-sm font-semibold rounded-lg py-2.5 hover:opacity-90 transition-all">
                   ✅ All good, post everything
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <button onClick={prevStep} className="text-sm text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5">
+                  ← Back
                 </button>
               </div>
             </div>

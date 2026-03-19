@@ -29,11 +29,11 @@ function getWorkerEmoji(agentName: string): string {
 
 function getWorkerName(agentName: string): string {
   const map: Record<string, string> = {
-    "x-tweet-thread-poster": "X Poster",
-    "x-engagement-agent": "X Engagement",
-    "reddit-comment-answer": "Reddit Commenter",
-    "reddit-flagship-poster": "Reddit Flagship",
-    "content-recycler": "Content Recycler",
+    "x-tweet-thread-poster": "Alex — X Content Writer",
+    "x-engagement-agent": "Marcus — Engagement Specialist",
+    "reddit-comment-answer": "Daniel — Reddit Commenter",
+    "reddit-flagship-poster": "James — Content Strategist",
+    "content-recycler": "Victor — Content Recycler",
   };
   return map[agentName] || agentName;
 }

@@ -168,10 +168,11 @@ export const clients = {
 
 // --- Insights (time saved, before/after, competitor watch, weekly summary) ---
 export const insights = {
-  timeSaved: () => apiFetch<{ total_hours: number; total_minutes: number; breakdown: Record<string, unknown>; human_readable: string }>("/insights/time-saved"),
+  timeSaved: () => apiFetch<{ total_hours: number; total_minutes: number; breakdown: Record<string, unknown>; human_readable: string; breakdown_display?: string[] }>("/insights/time-saved"),
   beforeAfter: () => apiFetch<{ early_posts: unknown[]; recent_posts: unknown[]; early_avg_score: number; recent_avg_score: number; improvement_pct: number }>("/insights/before-after"),
   competitorWatch: () => apiFetch<{ competitors: unknown[]; total: number }>("/insights/competitor-watch"),
   weeklySummary: () => apiFetch<{ posts_this_week: number; total_impressions: number; avg_rating: number | null; top_post: unknown | null }>("/insights/weekly-summary"),
+  workflowQuestions: () => apiFetch<{ questions: unknown[] }>("/insights/workflow-questions"),
 };
 
 // --- Demo (public, no auth) ---
