@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Login from "./pages/Login";
+import Verify from "./pages/Verify";
 import Pricing from "./pages/Pricing";
 import Onboarding from "./pages/Onboarding";
 import TodayWorkflow from "./pages/TodayWorkflow";
@@ -32,6 +33,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/verify" element={<Verify />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
