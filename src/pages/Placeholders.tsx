@@ -183,7 +183,12 @@ export const Judge = () => {
       }, 3000);
     } catch (e: any) {
       setJudgeRunning(false);
-      setJudgeStatus(`Error: ${e.message}`);
+      const msg = e.message || "Unknown error";
+      if (msg.toLowerCase().includes("rate limit")) {
+        setJudgeStatus("⏳ " + msg);
+      } else {
+        setJudgeStatus(`Error: ${msg}`);
+      }
     }
   };
 
