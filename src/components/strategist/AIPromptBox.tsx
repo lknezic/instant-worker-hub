@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import AIVoiceInput from "./AIVoiceInput";
+import VanishInput from "../ui/VanishInput";
 
 interface AIPromptBoxProps {
   onSend: (message: string) => void;
   isLoading?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  vanishPlaceholders?: string[];
 }
 
 const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a message..." }: AIPromptBoxProps) => {
