@@ -11,7 +11,7 @@ const AIVoiceInput = ({ onTranscript, disabled, className = "" }: AIVoiceInputPr
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [amplitude, setAmplitude] = useState(0);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const animFrameRef = useRef<number>(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
