@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { findings as initialFindings, workers as allWorkers, type Finding } from "@/data/mockData";
 import { Check, Pencil } from "lucide-react";
 import { onboarding, agents as agentsApi, connections as connectionsApi } from "@/lib/api";
+import AIInputWithLoading from "@/components/ui/AIInputWithLoading";
 
 const steps = ["Research", "Review Findings", "Connect & Pick Workers"];
 

@@ -192,6 +192,13 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
           onSend={handleSend}
           isLoading={isTyping}
           placeholder="Ask your strategist..."
+          vanishPlaceholders={[
+            "Adjust my posting schedule...",
+            "What content is performing best?",
+            "Review my voice settings...",
+            "Suggest topics for this week...",
+            "Analyze my competitor strategy...",
+          ]}
         />
       </div>
     </div>
