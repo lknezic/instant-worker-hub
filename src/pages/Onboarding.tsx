@@ -195,11 +195,18 @@ const Onboarding = () => {
               {researchError && (
                 <p className="text-sm text-warning">{researchError}</p>
               )}
-              <button onClick={handleResearch} disabled={loading} className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all disabled:opacity-50">
-                {loading ? (
-                  <ShimmerText text={loadingPhrases[loadingPhase]} />
-                ) : "Research My Business"}
-              </button>
+              {loading ? (
+                <AIInputWithLoading
+                  onSubmit={() => {}}
+                  isLoading={true}
+                  loadingPhrases={loadingPhrases}
+                  disabled
+                />
+              ) : (
+                <button onClick={handleResearch} disabled={!website.trim()} className="w-full bg-primary text-primary-foreground font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-all disabled:opacity-50">
+                  Research My Business
+                </button>
+              )}
             </div>
           </div>
         )}
