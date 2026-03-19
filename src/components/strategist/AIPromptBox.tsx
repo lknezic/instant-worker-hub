@@ -55,19 +55,30 @@ const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a messag
           : "border-border hover:border-border/80"
       } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
-      {/* Auto-expanding textarea */}
-      <textarea
-        ref={inputRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        placeholder={placeholder}
-        disabled={disabled || isLoading}
-        rows={1}
-        className="flex-1 resize-none bg-transparent text-xs leading-relaxed outline-none placeholder:text-muted-foreground min-h-[20px] max-h-[80px] py-0.5"
-      />
+      {/* Input area — VanishInput or textarea */}
+      {vanishPlaceholders && !value ? (
+        <VanishInput
+          placeholders={vanishPlaceholders}
+          onSubmit={(text) => {
+            onSend(text);
+          }}
+          disabled={disabled || isLoading}
+          className="flex-1 py-0.5"
+        />
+      ) : (
+        <textarea
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={vanishPlaceholders ? "" : placeholder}
+          disabled={disabled || isLoading}
+          rows={1}
+          className="flex-1 resize-none bg-transparent text-xs leading-relaxed outline-none placeholder:text-muted-foreground min-h-[20px] max-h-[80px] py-0.5"
+        />
+      )}
 
       {/* Voice input */}
       <AIVoiceInput
