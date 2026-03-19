@@ -241,7 +241,7 @@ const Workers = () => {
                       key={w.id}
                       onClick={async () => {
                         try {
-                          const sourceSlug = selected.name.toLowerCase().replace(/\s+/g, "-");
+                          const sourceSlug = worker.name.toLowerCase().replace(/\s+/g, "-");
                           const targetSlug = w.name.toLowerCase().replace(/\s+/g, "-");
                           await cloneRules.clone(sourceSlug, targetSlug);
                           toast(`✅ Rules cloned to ${w.name}`, { duration: 2000 });
