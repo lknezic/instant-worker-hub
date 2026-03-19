@@ -53,10 +53,10 @@ const AIVoiceInput = ({ onTranscript, disabled, className = "" }: AIVoiceInputPr
   useEffect(() => () => stopVisualizer(), [stopVisualizer]);
 
   const startRecording = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) return;
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionAPI();
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = "en-US";
