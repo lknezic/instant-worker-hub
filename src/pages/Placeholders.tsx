@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { scorecards, proof, guardian } from "@/lib/api";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { scorecards, proof, guardian, judge as judgeApi, jobs as jobsApi } from "@/lib/api";
 
 // --- Safety Guardian ---
 
@@ -111,13 +111,16 @@ export const Safety = () => {
 export const Judge = () => {
   const [latestScorecard, setLatestScorecard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [judgeRunning, setJudgeRunning] = useState(false);
+  const [judgeStatus, setJudgeStatus] = useState<string>("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollCount = useRef(0);
 
-  useEffect(() => {
+  const fetchScorecard = useCallback(() => {
     scorecards.list({ limit: 1 })
       .then((d: any) => {
         if (d.scorecards?.length > 0) {
           const sc = d.scorecards[0];
-          // Parse JSON fields if strings
           const parsed = { ...sc };
           for (const key of ["summary", "agent_scores", "global_insights", "spec_deltas"]) {
             if (typeof parsed[key] === "string") {
@@ -131,6 +134,59 @@ export const Judge = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetchScorecard();
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [fetchScorecard]);
+
+  const handleRunJudge = async () => {
+    setJudgeRunning(true);
+    setJudgeStatus("Starting Judge analysis...");
+    pollCount.current = 0;
+
+    try {
+      const res = await judgeApi.run();
+      const jobId = res.job_id;
+      if (res.status === "already_running") {
+        setJudgeStatus("Judge is already running...");
+      } else {
+        setJudgeStatus("Judge queued — analyzing your content...");
+      }
+
+      // Poll every 3s, max ~120s (40 polls)
+      pollRef.current = setInterval(async () => {
+        pollCount.current += 1;
+        if (pollCount.current > 40) {
+          if (pollRef.current) clearInterval(pollRef.current);
+          setJudgeRunning(false);
+          setJudgeStatus("Judge is taking longer than expected. Check back in a minute.");
+          return;
+        }
+        try {
+          const job = await jobsApi.get(jobId);
+          if (job.status === "complete") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setJudgeRunning(false);
+            setJudgeStatus("Judge complete — refreshing...");
+            fetchScorecard();
+            setTimeout(() => setJudgeStatus(""), 3000);
+          } else if (job.status === "failed") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setJudgeRunning(false);
+            setJudgeStatus(`Judge failed: ${job.error || "unknown error"}`);
+          } else {
+            setJudgeStatus(`Judge running... (${pollCount.current * 3}s)`);
+          }
+        } catch {
+          // Poll error — keep trying
+        }
+      }, 3000);
+    } catch (e: any) {
+      setJudgeRunning(false);
+      setJudgeStatus(`Error: ${e.message}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -139,18 +195,40 @@ export const Judge = () => {
     );
   }
 
+  const runButton = (
+    <button
+      onClick={handleRunJudge}
+      disabled={judgeRunning}
+      className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
+        judgeRunning ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:opacity-90"
+      }`}
+    >
+      {judgeRunning ? "Running..." : "Run Judge Now"}
+    </button>
+  );
+
+  const statusBar = judgeStatus ? (
+    <div className="px-6 py-2 border-b border-border bg-primary/5 text-xs text-primary font-medium">
+      {judgeStatus}
+    </div>
+  ) : null;
+
   if (!latestScorecard) {
     return (
       <div className="h-full flex flex-col">
-        <div className="px-6 pt-5 pb-4 border-b border-border shrink-0">
-          <h2 className="font-display text-lg font-bold">Judge</h2>
-          <p className="text-sm text-muted-foreground mt-1">Weekly performance analysis for your AI workers.</p>
+        <div className="px-6 pt-5 pb-4 border-b border-border shrink-0 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold">Judge</h2>
+            <p className="text-sm text-muted-foreground mt-1">Weekly performance analysis for your AI workers.</p>
+          </div>
+          {runButton}
         </div>
+        {statusBar}
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm">
             <span className="text-3xl block mb-3">📊</span>
             <h3 className="font-display font-bold mb-2">No weekly report yet</h3>
-            <p className="text-sm text-muted-foreground">The Judge runs every Monday morning. Once your posts have engagement metrics, the first full scorecard will appear here with per-worker grades, winning patterns, and improvement suggestions.</p>
+            <p className="text-sm text-muted-foreground">The Judge runs every Monday morning, or you can run it manually. Once your posts have engagement metrics, the scorecard will appear here.</p>
           </div>
         </div>
       </div>
@@ -164,12 +242,16 @@ export const Judge = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-6 pt-5 pb-4 border-b border-border shrink-0">
-        <h2 className="font-display text-lg font-bold">Judge</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Week of {latestScorecard.week_start} → {latestScorecard.week_end}
-        </p>
+      <div className="px-6 pt-5 pb-4 border-b border-border shrink-0 flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-lg font-bold">Judge</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Week of {latestScorecard.week_start} → {latestScorecard.week_end}
+          </p>
+        </div>
+        {runButton}
       </div>
+      {statusBar}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-2xl">
           {/* Summary stats */}

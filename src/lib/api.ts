@@ -127,6 +127,18 @@ export const connections = {
   disconnect: (channel: string) => apiFetch(`/connections/${channel}`, { method: "DELETE" }),
 };
 
+// --- Jobs ---
+export const jobs = {
+  get: (jobId: string) =>
+    apiFetch<{ id: string; client_id: string; job_type: string; status: string; result: unknown; error: string | null; created_at: string; completed_at: string | null }>(`/jobs/${jobId}`),
+};
+
+// --- Judge ---
+export const judge = {
+  run: () =>
+    apiFetch<{ status: string; job_id: string }>("/agents/judge/run", { method: "POST" }),
+};
+
 // --- Billing ---
 export const billing = {
   checkout: (plan: string) =>
