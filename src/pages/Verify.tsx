@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import logoIcon from "@/assets/logo-icon.png";
@@ -9,8 +9,12 @@ const Verify = () => {
   const [verifying, setVerifying] = useState(true);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const calledRef = useRef(false);
 
   useEffect(() => {
+    if (calledRef.current) return;
+    calledRef.current = true;
+
     const email = searchParams.get("email");
     const token = searchParams.get("token");
 
