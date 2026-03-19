@@ -4,17 +4,7 @@ import { agents as agentsApi, scorecards, insights, cloneRules } from "@/lib/api
 import { ChannelIcon, StatusDot } from "@/components/Icons";
 import { Star } from "lucide-react";
 import AnimatedNumber from "@/components/AnimatedNumber";
-import MiniSparkline from "@/components/MiniSparkline";
 import { toast } from "sonner";
-
-// Sparkline data per worker
-const sparklineData: Record<string, number[]> = {
-  w1: [1.2, 1.5, 1.8, 2.1, 2.3, 2.6],
-  w2: [0.8, 1.0, 0.9, 1.2, 1.1, 1.4],
-  w3: [1.5, 1.3, 1.7, 1.9, 2.0, 2.2],
-  w4: [2.0, 2.5, 2.8, 3.1, 2.9, 3.4],
-  w5: [0, 0, 0, 0, 0, 0],
-};
 
 function getWorkerEmoji(agentName: string): string {
   const map: Record<string, string> = {
@@ -373,7 +363,6 @@ const Workers = () => {
               {w.avgRating > 0 && (
                 <span className="text-primary font-semibold flex items-center gap-1">
                   <Star className="w-3 h-3" fill="currentColor" /> {w.avgRating}
-                  <MiniSparkline data={sparklineData[w.id] || []} className="ml-1" />
                 </span>
               )}
             </div>
