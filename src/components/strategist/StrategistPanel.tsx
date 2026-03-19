@@ -33,7 +33,7 @@ const ChatMessage = ({
 }) => {
   if (msg.role === "strategist") {
     return (
-      <div className="flex gap-2.5 animate-fade-in">
+      <div className="flex gap-2.5 animate-chat-bubble-left">
         <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
           <span className="text-xs">🧠</span>
         </div>
@@ -43,14 +43,15 @@ const ChatMessage = ({
           </div>
           {msg.quickReplies && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {msg.quickReplies.map((reply) => (
+              {msg.quickReplies.map((reply, i) => (
                 <button
                   key={reply}
                   onClick={() => !disabled && onQuickReply?.(reply)}
                   disabled={disabled}
-                  className={`text-[11px] px-2.5 py-1 rounded-full border border-primary/30 text-primary transition-colors ${
+                  className={`text-[11px] px-2.5 py-1 rounded-full border border-primary/30 text-primary transition-colors animate-quick-reply-pop ${
                     disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-primary/10"
                   }`}
+                  style={{ animationDelay: `${0.1 + i * 0.08}s` }}
                 >
                   {reply}
                 </button>
@@ -63,7 +64,7 @@ const ChatMessage = ({
   }
 
   return (
-    <div className="flex justify-end animate-fade-in">
+    <div className="flex justify-end animate-chat-bubble-right">
       <div className="bg-primary/10 border border-primary/20 rounded-lg rounded-tr-sm p-3 max-w-[85%]">
         <p className="text-xs leading-relaxed">{msg.content}</p>
       </div>
@@ -191,6 +192,13 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
           onSend={handleSend}
           isLoading={isTyping}
           placeholder="Ask your strategist..."
+          vanishPlaceholders={[
+            "Adjust my posting schedule...",
+            "What content is performing best?",
+            "Review my voice settings...",
+            "Suggest topics for this week...",
+            "Analyze my competitor strategy...",
+          ]}
         />
       </div>
     </div>

@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import AIVoiceInput from "./AIVoiceInput";
+import VanishInput from "../ui/VanishInput";
 
 interface AIPromptBoxProps {
   onSend: (message: string) => void;
   isLoading?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  vanishPlaceholders?: string[];
 }
 
-const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a message..." }: AIPromptBoxProps) => {
+const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a message...", vanishPlaceholders }: AIPromptBoxProps) => {
   const [value, setValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -53,19 +55,30 @@ const AIPromptBox = ({ onSend, isLoading, disabled, placeholder = "Type a messag
           : "border-border hover:border-border/80"
       } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
-      {/* Auto-expanding textarea */}
-      <textarea
-        ref={inputRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        placeholder={placeholder}
-        disabled={disabled || isLoading}
-        rows={1}
-        className="flex-1 resize-none bg-transparent text-xs leading-relaxed outline-none placeholder:text-muted-foreground min-h-[20px] max-h-[80px] py-0.5"
-      />
+      {/* Input area — VanishInput or textarea */}
+      {vanishPlaceholders && !value ? (
+        <VanishInput
+          placeholders={vanishPlaceholders}
+          onSubmit={(text) => {
+            onSend(text);
+          }}
+          disabled={disabled || isLoading}
+          className="flex-1 py-0.5"
+        />
+      ) : (
+        <textarea
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={vanishPlaceholders ? "" : placeholder}
+          disabled={disabled || isLoading}
+          rows={1}
+          className="flex-1 resize-none bg-transparent text-xs leading-relaxed outline-none placeholder:text-muted-foreground min-h-[20px] max-h-[80px] py-0.5"
+        />
+      )}
 
       {/* Voice input */}
       <AIVoiceInput

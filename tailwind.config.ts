@@ -104,6 +104,22 @@ export default {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
+        "chat-bubble-in": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "chat-bubble-left": {
+          "0%": { opacity: "0", transform: "translateX(-12px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateX(0) scale(1)" },
+        },
+        "chat-bubble-right": {
+          "0%": { opacity: "0", transform: "translateX(12px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateX(0) scale(1)" },
+        },
+        "quick-reply-pop": {
+          "0%": { opacity: "0", transform: "scale(0.8) translateY(4px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -112,6 +128,10 @@ export default {
         "fade-in": "fade-in 0.4s ease-out both",
         "scale-in": "scale-in 0.3s ease-out both",
         "slide-in-right": "slide-in-right 0.3s ease-out",
+        "chat-bubble-in": "chat-bubble-in 0.35s cubic-bezier(0.16,1,0.3,1) both",
+        "chat-bubble-left": "chat-bubble-left 0.35s cubic-bezier(0.16,1,0.3,1) both",
+        "chat-bubble-right": "chat-bubble-right 0.35s cubic-bezier(0.16,1,0.3,1) both",
+        "quick-reply-pop": "quick-reply-pop 0.25s cubic-bezier(0.16,1,0.3,1) both",
       },
     },
   },
