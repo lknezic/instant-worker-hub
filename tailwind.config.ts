@@ -104,6 +104,22 @@ export default {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
+        "chat-bubble-in": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "chat-bubble-left": {
+          "0%": { opacity: "0", transform: "translateX(-12px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateX(0) scale(1)" },
+        },
+        "chat-bubble-right": {
+          "0%": { opacity: "0", transform: "translateX(12px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateX(0) scale(1)" },
+        },
+        "quick-reply-pop": {
+          "0%": { opacity: "0", transform: "scale(0.8) translateY(4px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
