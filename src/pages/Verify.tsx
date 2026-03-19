@@ -22,7 +22,8 @@ const Verify = () => {
 
     (async () => {
       try {
-        await login(email, token);
+        const res = await import("@/lib/api").then(m => m.auth.verify(email, token));
+        login(res.access_token, res.user);
         navigate("/app", { replace: true });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Verification failed. The link may have expired.");

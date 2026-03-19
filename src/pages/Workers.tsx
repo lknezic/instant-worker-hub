@@ -236,7 +236,7 @@ const Workers = () => {
                 <h3 className="font-semibold text-sm mb-2">Clone Rules to Another Worker</h3>
                 <p className="text-xs text-muted-foreground mb-3">Copy this worker's learned rules to another worker.</p>
                 <div className="flex gap-2 flex-wrap">
-                  {workers.filter(w => w.id !== selected.id && w.status === "active").map(w => (
+                  {allWorkers.filter(w => w.id !== worker.id && w.status === "active").map(w => (
                     <button
                       key={w.id}
                       onClick={async () => {
