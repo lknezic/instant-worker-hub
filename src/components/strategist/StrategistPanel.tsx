@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { strategistMessages, type StrategistMessage } from "@/data/mockData";
-import { Send, Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
+import AIPromptBox from "./AIPromptBox";
 
 interface Props {
   tier?: 1 | 2 | 3;
