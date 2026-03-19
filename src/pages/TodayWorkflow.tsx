@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { workflowQuestions, reviewCards as mockReviewCards, improvementsSummary, overallImprovement, postSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
+import { workflowQuestions, reviewCards as mockReviewCards, improvementsSummary as mockImprovements, overallImprovement as mockOverallImprovement, postSummary as mockPostSummary, weeklyPillar, type ReviewCard } from "@/data/mockData";
 import { events as eventsApi, insights, email as emailApi } from "@/lib/api";
 import { Check, ChevronRight, Sparkles, TrendingUp, Eye } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
@@ -44,13 +44,13 @@ const stepMeta = [
   { label: "Post & Go", time: "1 min" },
 ];
 
-const bestPost = {
-  content: "Numbers that changed my trading: 45 DTE, 0.30 delta, 2% max risk per position...",
-  impressions: 6800,
-  saves: 142,
-  comments: 31,
-  workerName: "Alex — X Content Writer",
-  workerEmoji: "✍️",
+const defaultBestPost = {
+  content: "No posts with engagement data yet — keep posting and the best one will appear here.",
+  impressions: 0,
+  saves: 0,
+  comments: 0,
+  workerName: "Your workers",
+  workerEmoji: "🤖",
 };
 
 function getWorkerEmoji(agentName: string): string {
@@ -157,11 +157,74 @@ const TodayWorkflow = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const { setTodayComplete } = useWorkflow();
   const [realQuestions, setRealQuestions] = useState<typeof workflowQuestions | null>(null);
+  const [bestPost, setBestPost] = useState(defaultBestPost);
+  const [improvementsSummary, setImprovementsSummary] = useState(mockImprovements);
+  const [overallImprovement, setOverallImprovement] = useState(mockOverallImprovement);
+  const [postSummary, setPostSummary] = useState(mockPostSummary);
 
+  // Fetch real workflow questions
   useEffect(() => {
     insights.workflowQuestions()
       .then(d => { if (d.questions?.length) setRealQuestions(d.questions as typeof workflowQuestions); })
-      .catch(() => {});  // fall back to mock
+      .catch(() => {});
+  }, []);
+
+  // Fetch real Step 3 data: best post + improvements
+  useEffect(() => {
+    // Best post from weekly summary
+    insights.weeklySummary()
+      .then(d => {
+        if (d.top_post) {
+          const tp = d.top_post as any;
+          setBestPost({
+            content: tp.text || tp.final_text || tp.draft_text || defaultBestPost.content,
+            impressions: tp.impressions || 0,
+            saves: tp.bookmarks || tp.saves || 0,
+            comments: tp.replies || 0,
+            workerName: getWorkerName(tp.agent_name || ""),
+            workerEmoji: getWorkerEmoji(tp.agent_name || ""),
+          });
+        }
+      })
+      .catch(() => {});
+
+    // Before/after improvements
+    insights.beforeAfter()
+      .then(d => {
+        const pct = d.improvement_pct || 0;
+        if (pct !== 0) {
+          setOverallImprovement(
+            pct > 0
+              ? `Engagement up ${Math.round(pct)}% vs early posts ✅`
+              : `Engagement down ${Math.abs(Math.round(pct))}% vs early posts`
+          );
+        }
+        // Build improvements from early vs recent score comparison
+        if (d.early_avg_score != null && d.recent_avg_score != null) {
+          const earlyScore = Math.round(d.early_avg_score * 10) / 10;
+          const recentScore = Math.round(d.recent_avg_score * 10) / 10;
+          if (recentScore > earlyScore) {
+            setImprovementsSummary([
+              { workerEmoji: "✍️", workerName: "Alex — X Content Writer", learned: `Quality score improved from ${earlyScore} to ${recentScore}`, stopped: null },
+              ...mockImprovements.slice(1),
+            ]);
+          }
+        }
+      })
+      .catch(() => {});
+
+    // Dashboard stats for Step 5 post summary
+    insights.dashboardStats()
+      .then((d: any) => {
+        if (d.posts_this_week != null) {
+          setPostSummary({
+            xPosts: { total: d.posts_this_week || 0, auto: d.posts_this_week - (d.pending_count || 0), needScreenshots: 0 },
+            redditDrafts: d.pending_count || 0,
+            engagementReplies: 0,
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Use real questions if available, otherwise mock
