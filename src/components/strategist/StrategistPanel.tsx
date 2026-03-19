@@ -73,7 +73,6 @@ const ChatMessage = ({
 
 const StrategistPanel = ({ tier = 2 }: Props) => {
   const [messages, setMessages] = useState<StrategistMessage[]>(strategistMessages);
-  const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -83,10 +82,9 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
     }
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages((prev) => [...prev, { id: `u${Date.now()}`, role: "user", content: input }]);
-    setInput("");
+  const handleSend = (text: string) => {
+    if (!text.trim()) return;
+    setMessages((prev) => [...prev, { id: `u${Date.now()}`, role: "user", content: text }]);
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
