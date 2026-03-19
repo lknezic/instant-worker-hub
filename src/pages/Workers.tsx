@@ -68,6 +68,18 @@ const Workers = () => {
   const [opinionMix, setOpinionMix] = useState(25);
   const [autonomy, setAutonomy] = useState("L2");
   const [suggestions, setSuggestions] = useState(workerLearning.suggestions);
+  const [latestScorecard, setLatestScorecard] = useState<any>(null);
+
+  // Slug → agent_name mapping for matching spec_deltas
+  const slugToAgentName: Record<string, string> = {
+    "x-poster": "x-tweet-thread-poster",
+    "x-engagement": "x-engagement-agent",
+    "reddit-commenter": "reddit-comment-answer",
+    "reddit-flagship": "reddit-flagship-poster",
+    "content-recycler": "content-recycler",
+    "email-newsletter": "email-newsletter-agent",
+    "email-reactivation": "email-reactivation-agent",
+  };
 
   // Fetch real agents on mount, fall back to mock data
   useEffect(() => {
@@ -80,6 +92,22 @@ const Workers = () => {
         }
       } catch {
         // API not available — keep mock data
+      }
+      // Fetch latest scorecard for learnings
+      try {
+        const scData = await scorecards.list({ limit: 1 });
+        if (!cancelled && (scData as any).scorecards?.length > 0) {
+          const sc = (scData as any).scorecards[0];
+          // Parse JSON fields if strings
+          for (const key of ["spec_deltas", "agent_scores", "summary"]) {
+            if (typeof sc[key] === "string") {
+              try { sc[key] = JSON.parse(sc[key]); } catch { sc[key] = []; }
+            }
+          }
+          setLatestScorecard(sc);
+        }
+      } catch {
+        // No scorecards available
       }
     })();
     return () => { cancelled = true; };
@@ -168,11 +196,43 @@ const Workers = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === "learning" && (
+          {activeTab === "learning" && (() => {
+            // Find spec_delta matching this worker
+            const agentName = slugToAgentName[worker.id] || worker.id;
+            const specDeltas = latestScorecard?.spec_deltas || [];
+            const delta = specDeltas.find((d: any) => d.agent_name === agentName);
+            const doMore = delta?.add_do || delta?.do_more_of || [];
+            const stopDoing = delta?.add_dont || delta?.stop_doing || [];
+            const weekRange = latestScorecard ? `${latestScorecard.week_start} → ${latestScorecard.week_end}` : null;
+            const hasRealData = doMore.length > 0 || stopDoing.length > 0;
+
+            return (
             <div className="max-w-2xl space-y-8">
-              <Section title="Doing More Of" items={workerLearning.doingMore} color="text-success" icon="↗" />
-              <Section title="Stopped Doing" items={workerLearning.stoppedDoing} color="text-destructive" icon="↘" />
-              <Section title="Your Feedback" items={workerLearning.feedback} color="text-info" icon="◆" />
+              {weekRange && (
+                <p className="text-xs text-muted-foreground">From Judge report: {weekRange}</p>
+              )}
+
+              {hasRealData ? (
+                <>
+                  {doMore.length > 0 && <Section title="Doing More Of" items={doMore} color="text-success" icon="↗" />}
+                  {stopDoing.length > 0 && <Section title="Stopped Doing" items={stopDoing} color="text-destructive" icon="↘" />}
+                </>
+              ) : latestScorecard ? (
+                <div className="glass-card rounded-xl p-5 text-center">
+                  <span className="text-2xl block mb-2">📊</span>
+                  <p className="text-sm text-muted-foreground">No specific learning rules for this worker yet. The Judge will generate per-worker insights once enough posts have engagement data.</p>
+                </div>
+              ) : (
+                <div className="glass-card rounded-xl p-5 text-center">
+                  <span className="text-2xl block mb-2">📊</span>
+                  <h3 className="font-display font-bold text-sm mb-2">No Judge report yet</h3>
+                  <p className="text-sm text-muted-foreground">The Judge runs every Monday morning. Once your posts have engagement metrics, learning rules will appear here showing what's working and what to stop doing.</p>
+                </div>
+              )}
+
+              {hasRealData && workerLearning.feedback.length > 0 && (
+                <Section title="Your Feedback" items={workerLearning.feedback} color="text-info" icon="◆" />
+              )}
 
               <div>
                 <h3 className="font-semibold text-sm mb-3">Suggestions</h3>
@@ -256,7 +316,8 @@ const Workers = () => {
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {activeTab === "activity" && (
             <div className="max-w-2xl space-y-2">
