@@ -185,7 +185,25 @@ export const Judge = () => {
       setJudgeRunning(false);
       const msg = e.message || "Unknown error";
       if (msg.toLowerCase().includes("rate limit")) {
-        setJudgeStatus("⏳ " + msg);
+        // Parse seconds from "Rate limited — 247 seconds remaining"
+        const match = msg.match(/(\d+)\s*seconds?\s*remaining/i);
+        if (match) {
+          let secs = parseInt(match[1], 10);
+          const tick = () => {
+            if (secs <= 0) {
+              setJudgeStatus("");
+              return;
+            }
+            const m = Math.floor(secs / 60);
+            const s = secs % 60;
+            setJudgeStatus(`⏳ Rate limited — try again in ${m}:${s.toString().padStart(2, "0")}`);
+            secs -= 1;
+            setTimeout(tick, 1000);
+          };
+          tick();
+        } else {
+          setJudgeStatus("⏳ " + msg);
+        }
       } else {
         setJudgeStatus(`Error: ${msg}`);
       }
