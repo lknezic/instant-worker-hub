@@ -145,7 +145,7 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
         <div className="p-3 border-t border-border opacity-30 pointer-events-none">
           <div className="flex items-center gap-2 bg-background/50 border border-border rounded-lg px-3 py-2">
             <span className="flex-1 text-xs text-muted-foreground">Type a message...</span>
-            <Send className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/40" />
           </div>
         </div>
 
