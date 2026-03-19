@@ -177,7 +177,7 @@ export const insights = {
   competitorWatch: () => apiFetch<{ competitors: unknown[]; total: number }>("/insights/competitor-watch"),
   weeklySummary: () => apiFetch<{ posts_this_week: number; total_impressions: number; avg_rating: number | null; top_post: unknown | null }>("/insights/weekly-summary"),
   workflowQuestions: () => apiFetch<{ questions: unknown[] }>("/insights/workflow-questions"),
-  dashboardStats: () => apiFetch<{ posts_this_week: number; pending_count: number; engagement_pct: number; grade: string }>("/insights/dashboard-stats"),
+  dashboardStats: () => apiFetch<{ posts_this_week: number; posts_posted: number; pending: number; engagement_pct: number; grade: string }>("/insights/dashboard-stats"),
 };
 
 // --- Demo (public, no auth) ---

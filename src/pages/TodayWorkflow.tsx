@@ -218,8 +218,8 @@ const TodayWorkflow = () => {
       .then((d: any) => {
         if (d.posts_this_week != null) {
           setPostSummary({
-            xPosts: { total: d.posts_this_week || 0, auto: d.posts_this_week - (d.pending_count || 0), needScreenshots: 0 },
-            redditDrafts: d.pending_count || 0,
+            xPosts: { total: d.posts_this_week || 0, auto: (d.posts_posted || d.posts_this_week || 0) - (d.pending || 0), needScreenshots: 0 },
+            redditDrafts: d.pending || 0,
             engagementReplies: 0,
           });
         }
