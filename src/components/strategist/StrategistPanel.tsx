@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { strategistMessages, type StrategistMessage } from "@/data/mockData";
-import { Send, Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
+import AIPromptBox from "./AIPromptBox";
 
 interface Props {
   tier?: 1 | 2 | 3;
@@ -72,7 +73,6 @@ const ChatMessage = ({
 
 const StrategistPanel = ({ tier = 2 }: Props) => {
   const [messages, setMessages] = useState<StrategistMessage[]>(strategistMessages);
-  const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -82,10 +82,9 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
     }
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages((prev) => [...prev, { id: `u${Date.now()}`, role: "user", content: input }]);
-    setInput("");
+  const handleSend = (text: string) => {
+    if (!text.trim()) return;
+    setMessages((prev) => [...prev, { id: `u${Date.now()}`, role: "user", content: text }]);
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
@@ -144,7 +143,7 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
         <div className="p-3 border-t border-border opacity-30 pointer-events-none">
           <div className="flex items-center gap-2 bg-background/50 border border-border rounded-lg px-3 py-2">
             <span className="flex-1 text-xs text-muted-foreground">Type a message...</span>
-            <Send className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/40" />
           </div>
         </div>
 
@@ -188,22 +187,11 @@ const StrategistPanel = ({ tier = 2 }: Props) => {
       </div>
 
       <div className="p-3 border-t border-border">
-        <div className="flex items-center gap-2 bg-background/50 border border-border rounded-lg px-3 py-2 focus-within:ring-1 focus-within:ring-primary/50 focus-within:border-primary/30 transition-all">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type a message..."
-            className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim()}
-            className="text-primary hover:text-primary/80 transition-colors disabled:opacity-30"
-          >
-            <Send className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <AIPromptBox
+          onSend={handleSend}
+          isLoading={isTyping}
+          placeholder="Ask your strategist..."
+        />
       </div>
     </div>
   );
