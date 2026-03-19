@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { workers as mockWorkers, workerLearning, activityLog, type Worker } from "@/data/mockData";
-import { agents as agentsApi, scorecards, insights, cloneRules } from "@/lib/api";
+import { agents as agentsApi, events as eventsApi, scorecards, insights, cloneRules } from "@/lib/api";
 import { ChannelIcon, StatusDot } from "@/components/Icons";
 import { Star } from "lucide-react";
 import AnimatedNumber from "@/components/AnimatedNumber";
@@ -69,6 +69,7 @@ const Workers = () => {
   const [autonomy, setAutonomy] = useState("L2");
   const [suggestions, setSuggestions] = useState(workerLearning.suggestions);
   const [latestScorecard, setLatestScorecard] = useState<any>(null);
+  const [realActivity, setRealActivity] = useState<Array<{ id: string; status: string; date: string; content: string; metrics?: { views: number; saves: number; comments: number }; rating: number }>>([]);
 
   // Slug → agent_name mapping for matching spec_deltas
   const slugToAgentName: Record<string, string> = {
@@ -112,6 +113,33 @@ const Workers = () => {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Fetch real activity when a worker is selected
+  useEffect(() => {
+    if (!selectedWorker) { setRealActivity([]); return; }
+    const agentName = slugToAgentName[selectedWorker] || selectedWorker;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await eventsApi.list({ agent_name: agentName, limit: 20 });
+        if (!cancelled && data.events?.length > 0) {
+          setRealActivity(data.events.map((ev: any) => ({
+            id: ev.id,
+            status: ev.review_status || "pending",
+            date: ev.created_at ? new Date(ev.created_at).toLocaleDateString() : "",
+            content: ev.final_text || ev.draft_text || "",
+            metrics: ev.impressions ? { views: ev.impressions, saves: ev.bookmarks || 0, comments: ev.replies || 0 } : undefined,
+            rating: ev.review_rating || 0,
+          })));
+        } else if (!cancelled) {
+          setRealActivity([]);
+        }
+      } catch {
+        if (!cancelled) setRealActivity([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedWorker]);
 
   const worker = allWorkers.find((w) => w.id === selectedWorker);
 
@@ -319,9 +347,16 @@ const Workers = () => {
             );
           })()}
 
-          {activeTab === "activity" && (
+          {activeTab === "activity" && (() => {
+            const activity = realActivity.length > 0 ? realActivity : activityLog;
+            return (
             <div className="max-w-2xl space-y-2">
-              {activityLog.map((a, i) => (
+              {activity.length === 0 ? (
+                <div className="glass-card rounded-xl p-5 text-center">
+                  <span className="text-2xl block mb-2">📝</span>
+                  <p className="text-sm text-muted-foreground">No activity yet for this worker.</p>
+                </div>
+              ) : activity.map((a, i) => (
                 <div
                   key={a.id}
                   className={`glass-card rounded-lg p-3.5 flex items-start gap-3 animate-fade-in ${statusBorderColor(a.status)}`}
@@ -347,7 +382,8 @@ const Workers = () => {
                 </div>
               ))}
             </div>
-          )}
+            );
+          })()}
 
           {activeTab === "settings" && (
             <div className="max-w-md space-y-6">

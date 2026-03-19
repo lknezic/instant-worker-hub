@@ -69,9 +69,11 @@ export const auth = {
 
 // --- Events (content) ---
 export const events = {
-  list: (params?: { review_status?: string; limit?: number; offset?: number }) => {
+  list: (params?: { review_status?: string; agent_name?: string; channel?: string; limit?: number; offset?: number }) => {
     const sp = new URLSearchParams();
     if (params?.review_status) sp.set("review_status", params.review_status);
+    if (params?.agent_name) sp.set("agent_name", params.agent_name);
+    if (params?.channel) sp.set("channel", params.channel);
     if (params?.limit) sp.set("limit", String(params.limit));
     if (params?.offset) sp.set("offset", String(params.offset));
     return apiFetch<{ events: unknown[]; total: number }>(`/events?${sp}`);
