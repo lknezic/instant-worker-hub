@@ -228,18 +228,18 @@ export const Judge = () => {
               {specDeltas.map((delta: any, i: number) => (
                 <div key={i} className="mb-3 last:mb-0">
                   <span className="text-xs font-medium">{delta.agent_name?.replace(/-/g, " ")}</span>
-                  {delta.do_more_of?.length > 0 && (
+                  {(delta.add_do || delta.do_more_of)?.length > 0 && (
                     <ul className="mt-1 space-y-0.5">
-                      {delta.do_more_of.map((item: string, j: number) => (
+                      {(delta.add_do || delta.do_more_of).map((item: string, j: number) => (
                         <li key={j} className="text-xs text-muted-foreground flex items-center gap-2">
                           <span className="text-success">●</span> {item}
                         </li>
                       ))}
                     </ul>
                   )}
-                  {delta.stop_doing?.length > 0 && (
+                  {(delta.add_dont || delta.stop_doing)?.length > 0 && (
                     <ul className="mt-1 space-y-0.5">
-                      {delta.stop_doing.map((item: string, j: number) => (
+                      {(delta.add_dont || delta.stop_doing).map((item: string, j: number) => (
                         <li key={j} className="text-xs text-muted-foreground flex items-center gap-2">
                           <span className="text-destructive">●</span> {item}
                         </li>
