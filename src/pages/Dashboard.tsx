@@ -210,7 +210,18 @@ const Dashboard = () => {
                       <span className="inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium mb-2">
                         {card.skill}
                       </span>
-                      <p className="text-xs text-muted-foreground line-clamp-3 mb-2.5 leading-relaxed">{card.content}</p>
+                      {/\[\d+\/\d+\]/.test(card.content) ? (
+                        <>
+                          <p className="text-xs text-muted-foreground line-clamp-3 mb-1.5 leading-relaxed">
+                            {card.content.split(/\[\d+\/\d+\]\s*/)[1]?.trim().slice(0, 120) || card.content.slice(0, 120)}...
+                          </p>
+                          <span className="text-[9px] text-primary/60 font-medium">
+                            🧵 Thread • {card.content.split(/\[\d+\/\d+\]/).filter(Boolean).length} tweets
+                          </span>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground line-clamp-3 mb-2.5 leading-relaxed">{card.content}</p>
+                      )}
 
                       {card.status === "posted" && card.metrics && (
                         <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 mb-2 font-mono">

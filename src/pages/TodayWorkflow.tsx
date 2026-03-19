@@ -3,6 +3,7 @@ import { workflowQuestions, reviewCards as mockReviewCards, improvementsSummary,
 import { events as eventsApi, insights } from "@/lib/api";
 import { Check, ChevronRight, Sparkles, TrendingUp, Eye } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
+import ThreadDisplay from "@/components/ThreadDisplay";
 
 function CompetitorWatch() {
   const [competitors, setCompetitors] = useState<Array<{ handle: string; text: string; likes: number; replies: number }>>([]);
@@ -391,7 +392,11 @@ const TodayWorkflow = () => {
                         <span className="text-lg">{pendingReview[1].workerEmoji}</span>
                         <span className="text-sm font-semibold">{pendingReview[1].workerName}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">"{pendingReview[1].content}"</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                        "{/\[\d+\/\d+\]/.test(pendingReview[1].content)
+                          ? (pendingReview[1].content.split(/\[\d+\/\d+\]\s*/)[1]?.trim().slice(0, 80) || pendingReview[1].content.slice(0, 80)) + "... 🧵"
+                          : pendingReview[1].content}"
+                      </p>
                     </div>
                   )}
 
@@ -430,7 +435,9 @@ const TodayWorkflow = () => {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-5 min-h-[60px]">"{card.content}"</p>
+                          <div className="mb-5 min-h-[60px]">
+                            <ThreadDisplay content={card.content} />
+                          </div>
                         )}
 
                         {/* Numbered Rating 1-10 */}
