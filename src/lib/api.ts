@@ -139,6 +139,17 @@ export const judge = {
     apiFetch<{ status: string; job_id: string }>("/agents/judge/run", { method: "POST" }),
 };
 
+// --- Notifications ---
+export const notificationsApi = {
+  list: (limit?: number) => {
+    const sp = new URLSearchParams();
+    if (limit) sp.set("limit", String(limit));
+    return apiFetch<{ notifications: Array<{ id: string; client_id: string; type: string; title: string; body: string; read: boolean; created_at: string }>; unread_count: number }>(`/notifications?${sp}`);
+  },
+  readAll: () => apiFetch("/notifications/read-all", { method: "POST" }),
+  readOne: (id: string) => apiFetch(`/notifications/${id}/read`, { method: "POST" }),
+};
+
 // --- Billing ---
 export const billing = {
   checkout: (plan: string) =>
