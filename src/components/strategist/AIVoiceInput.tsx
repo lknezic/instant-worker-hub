@@ -1,6 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Mic, MicOff, Square } from "lucide-react";
 
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
 interface AIVoiceInputProps {
   onTranscript: (text: string) => void;
   disabled?: boolean;
