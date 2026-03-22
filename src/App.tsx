@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Workers from "./pages/Workers";
 import Settings from "./pages/Settings";
 import { Judge, Proof, Safety } from "./pages/Placeholders";
+import Strategist from "./pages/Strategist";
 import AppLayout from "./components/AppLayout";
 import { WorkflowProvider } from "./contexts/WorkflowContext";
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="judge" element={<Judge />} />
             <Route path="proof" element={<Proof />} />
             <Route path="safety" element={<Safety />} />
+            <Route path="strategist" element={<Strategist />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

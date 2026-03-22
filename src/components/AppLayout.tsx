@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import logoIcon from "@/assets/logo-icon.png";
 import StrategistPanel from "@/components/strategist/StrategistPanel";
 import NotificationBell from "@/components/NotificationBell";
-import { LayoutDashboard, Users, Brain, Shield, BookCheck, Settings, ClipboardList, Check, Sun, Moon, Menu, X, Clock } from "lucide-react";
+import { LayoutDashboard, Users, Brain, Shield, BookCheck, Settings, ClipboardList, Check, Sun, Moon, Menu, X, Clock, Sparkles } from "lucide-react";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { insights } from "@/lib/api";
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/app", label: "Today", icon: ClipboardList, end: true },
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/app/workers", label: "Workers", icon: Users },
+  { to: "/app/strategist", label: "Strategist", icon: Sparkles },
 ];
 
 const intelligenceItems = [
@@ -25,8 +26,10 @@ const AppLayout = () => {
   const [darkMode, setDarkMode] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { todayComplete } = useWorkflow();
   const isMobile = useIsMobile();
+  const isStrategistPage = location.pathname === "/app/strategist";
 
   const [timeSaved, setTimeSaved] = useState<string | null>(null);
   const [timeSavedBreakdown, setTimeSavedBreakdown] = useState<string[]>([]);
@@ -189,8 +192,8 @@ const AppLayout = () => {
         <Outlet />
       </main>
 
-      {/* Strategist Panel — always visible on desktop */}
-      {!isMobile && <StrategistPanel tier={2} />}
+      {/* Strategist Panel — visible on desktop except on Strategist workspace page */}
+      {!isMobile && !isStrategistPage && <StrategistPanel tier={2} />}
     </div>
   );
 };

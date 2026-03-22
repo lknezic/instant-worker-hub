@@ -203,6 +203,7 @@ export const clients = {
 // --- Insights (time saved, before/after, competitor watch, weekly summary) ---
 export const insights = {
   timeSaved: () => apiFetch<{ total_hours: number; total_minutes: number; breakdown: Record<string, unknown>; human_readable: string; breakdown_display?: string[] }>("/insights/time-saved"),
+  dashboardStats: () => apiFetch<{ posts_this_week: number; posts_posted: number; pending: number; engagement_pct: number; grade: string }>("/insights/dashboard-stats"),
   beforeAfter: () => apiFetch<{ early_posts: unknown[]; recent_posts: unknown[]; early_avg_score: number; recent_avg_score: number; improvement_pct: number }>("/insights/before-after"),
   competitorWatch: () => apiFetch<{ competitors: unknown[]; total: number }>("/insights/competitor-watch"),
   weeklySummary: () => apiFetch<{ posts_this_week: number; total_impressions: number; avg_rating: number | null; top_post: unknown | null }>("/insights/weekly-summary"),
@@ -249,4 +250,72 @@ export const email = {
     apiFetch<{ ok: boolean; delivery_status: string; recipient: string; subject: string }>(
       `/agents/email/send/${eventId}`, { method: "POST" },
     ),
+};
+
+// --- Strategist ---
+export const strategist = {
+  chat: (message: string) =>
+    apiFetch<{ response: string; profile_updates: Record<string, string> | null; message_id: string }>("/strategist/chat", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+    }),
+
+  messages: (limit?: number) => {
+    const sp = new URLSearchParams();
+    if (limit) sp.set("limit", String(limit));
+    return apiFetch<{
+      messages: Array<{
+        id: string;
+        role: "user" | "assistant";
+        content: string;
+        profile_updates: Record<string, string> | null;
+        created_at: string;
+      }>;
+      count: number;
+    }>(`/strategist/messages?${sp}`);
+  },
+
+  profile: () => apiFetch<{
+    profile: {
+      company_id: string;
+      user_id: string;
+      company_core: { business_name?: string; website?: string; description?: string };
+      company_profile: { audience?: string; regions?: string; pain_points?: string; topics?: string; voice_style?: string; features?: string; competitors?: string };
+      company_compliance: { regulated_industry?: string; forbidden_topics?: string; required_disclaimers?: string };
+      offers: Array<{ name?: string; description?: string }>;
+      channels: Array<{ channel?: string; handle?: string }>;
+      strategy_state: { current_goal?: string; primary_constraint?: string; stage?: string; current_play?: string; ninety_day_outcome?: string };
+      strategy_loop_state: { latest_scorecard_id?: string };
+    };
+    changes: Array<{
+      id: string;
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+      source?: string;
+      created_at: string;
+    }>;
+  }>("/strategist/profile"),
+
+  updateField: (field: string, value: unknown) =>
+    apiFetch("/strategist/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ field, value }),
+    }),
+
+  proposals: () =>
+    apiFetch<Array<{
+      id: string;
+      field_name: string;
+      proposed_changes: Record<string, unknown>;
+      reason?: string;
+      status: string;
+      created_at: string;
+    }>>("/strategist/proposals"),
+
+  acceptProposal: (id: string) =>
+    apiFetch(`/strategist/proposals/${id}/accept`, { method: "POST" }),
+
+  rejectProposal: (id: string) =>
+    apiFetch(`/strategist/proposals/${id}/reject`, { method: "POST" }),
 };
