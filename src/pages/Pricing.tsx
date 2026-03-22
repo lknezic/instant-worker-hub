@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Minus } from "lucide-react";
+import logoIcon from "@/assets/logo-icon.png";
 
 const plans = [
   {
@@ -58,6 +60,7 @@ const comparisonFeatures = [
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const [notifyTooltip, setNotifyTooltip] = useState(false);
 
   const renderCell = (val: boolean | string) => {
     if (val === true) return <Check className="w-4 h-4 text-primary mx-auto" />;
@@ -69,8 +72,12 @@ const Pricing = () => {
     <div className="min-h-screen flex flex-col items-center px-4 py-16 relative overflow-hidden">
       <div className="text-center mb-12 relative z-10 animate-fade-in">
         <button onClick={() => navigate("/login")} className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block transition-colors">
-          ← Back to login
+          &larr; Back to login
         </button>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <img src={logoIcon} alt="InstantWorker" className="w-8 h-8 invert" />
+          <span className="text-xl font-bold tracking-tight">Instant<span className="text-primary">Worker</span></span>
+        </div>
         <h1 className="text-3xl font-bold tracking-tight">
           Simple pricing for your AI marketing team
         </h1>
@@ -120,19 +127,32 @@ const Pricing = () => {
               ))}
             </ul>
 
-            <button
-              onClick={() => !plan.comingSoon && navigate("/onboarding")}
-              disabled={plan.comingSoon}
-              className={`w-full text-sm font-semibold rounded-lg py-2.5 transition-all ${
-                plan.comingSoon
-                  ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : plan.popular
-                    ? "bg-primary text-primary-foreground hover:opacity-90"
-                    : "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
-              }`}
-            >
-              {plan.cta}
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (plan.comingSoon) {
+                    setNotifyTooltip(true);
+                    setTimeout(() => setNotifyTooltip(false), 3000);
+                  } else {
+                    navigate(`/login?plan=${plan.name.toLowerCase()}`);
+                  }
+                }}
+                className={`w-full text-sm font-semibold rounded-lg py-2.5 transition-all ${
+                  plan.comingSoon
+                    ? "bg-muted text-muted-foreground cursor-help"
+                    : plan.popular
+                      ? "bg-primary text-primary-foreground hover:opacity-90"
+                      : "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
+                }`}
+              >
+                {plan.cta}
+              </button>
+              {plan.comingSoon && notifyTooltip && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-card border border-border text-xs text-muted-foreground px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-50">
+                  Coming Q2 2026 — join the waitlist
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -164,6 +184,12 @@ const Pricing = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="text-center text-xs text-muted-foreground/60 mt-12 space-x-3 relative z-10">
+        <a href="https://instantworker.ai/terms" className="hover:text-muted-foreground transition-colors">Terms of Service</a>
+        <span>·</span>
+        <a href="https://instantworker.ai/privacy" className="hover:text-muted-foreground transition-colors">Privacy Policy</a>
       </div>
     </div>
   );

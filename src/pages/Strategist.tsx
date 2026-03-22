@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { strategist } from "@/lib/api";
-import { Send, Loader2, RefreshCw, User, Building2, Target, Compass, TrendingUp, Users, AlertTriangle, CheckCircle2, Pencil, X, Check } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { strategist, analyst } from "@/lib/api";
+import { Send, Loader2, RefreshCw, User, Building2, Target, Compass, TrendingUp, TrendingDown, Minus, Users, AlertTriangle, CheckCircle2, Pencil, X, Check, BarChart3 } from "lucide-react";
 import AIPromptBox from "@/components/strategist/AIPromptBox";
 import { toast } from "sonner";
 
@@ -255,6 +256,64 @@ const BusinessProfile = ({
   );
 };
 
+// ─── Analyst Brief Card ──────────────────────────────────────────
+
+const AnalystBriefCard = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ["analyst-brief"],
+    queryFn: () => analyst.brief("7d"),
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  if (isLoading || !data) return null;
+
+  const { content_metrics, health_signals } = data;
+
+  const trendIcon =
+    content_metrics.trend === "up" ? (
+      <TrendingUp className="w-3.5 h-3.5 text-success" />
+    ) : content_metrics.trend === "down" ? (
+      <TrendingDown className="w-3.5 h-3.5 text-destructive" />
+    ) : (
+      <Minus className="w-3.5 h-3.5 text-muted-foreground" />
+    );
+
+  const alerts = health_signals?.alerts ?? [];
+
+  return (
+    <div className="mx-4 mt-3 mb-1 glass-card rounded-lg px-4 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs border-l-2 border-primary/40">
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <BarChart3 className="w-3.5 h-3.5" />
+        <span className="font-medium text-foreground/80">This week</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <span className="text-muted-foreground">Posts:</span>
+        <span className="font-semibold">{content_metrics.posts_published}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <span className="text-muted-foreground">Engagement:</span>
+        {trendIcon}
+        <span className="font-semibold">
+          {(content_metrics.avg_engagement_rate * 100).toFixed(1)}%
+        </span>
+      </div>
+      {content_metrics.top_channel && (
+        <div className="flex items-center gap-1">
+          <span className="text-muted-foreground">Top:</span>
+          <span className="font-semibold capitalize">{content_metrics.top_channel}</span>
+        </div>
+      )}
+      {alerts.length > 0 && (
+        <div className="flex items-center gap-1 text-destructive/80">
+          <AlertTriangle className="w-3 h-3" />
+          <span>{alerts[0]}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Main Page ────────────────────────────────────────────────────
 
 const Strategist = () => {
@@ -383,6 +442,9 @@ const Strategist = () => {
           </div>
         </div>
       </div>
+
+      {/* Analyst Brief */}
+      <AnalystBriefCard />
 
       {/* Two-panel layout */}
       <div className="flex flex-1 min-h-0">

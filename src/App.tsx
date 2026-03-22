@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import { Judge, Proof, Safety } from "./pages/Placeholders";
 import Strategist from "./pages/Strategist";
 import AppLayout from "./components/AppLayout";
+import NotFound from "./pages/NotFound";
 import { WorkflowProvider } from "./contexts/WorkflowContext";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="strategist" element={<Strategist />} />
             <Route path="settings" element={<Settings />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
         </AuthProvider>
       </BrowserRouter>

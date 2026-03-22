@@ -208,7 +208,6 @@ export const insights = {
   competitorWatch: () => apiFetch<{ competitors: unknown[]; total: number }>("/insights/competitor-watch"),
   weeklySummary: () => apiFetch<{ posts_this_week: number; total_impressions: number; avg_rating: number | null; top_post: unknown | null }>("/insights/weekly-summary"),
   workflowQuestions: () => apiFetch<{ questions: unknown[] }>("/insights/workflow-questions"),
-  dashboardStats: () => apiFetch<{ posts_this_week: number; posts_posted: number; pending: number; engagement_pct: number; grade: string }>("/insights/dashboard-stats"),
 };
 
 // --- Demo (public, no auth) ---
@@ -250,6 +249,27 @@ export const email = {
     apiFetch<{ ok: boolean; delivery_status: string; recipient: string; subject: string }>(
       `/agents/email/send/${eventId}`, { method: "POST" },
     ),
+};
+
+// --- Analyst ---
+export const analyst = {
+  brief: (period?: string) =>
+    apiFetch<{
+      period: string;
+      content_metrics: {
+        posts_published: number;
+        avg_engagement_rate: number;
+        top_channel: string | null;
+        trend: string;
+        channel_breakdown: Record<string, unknown>;
+      };
+      health_signals: {
+        engagement_trend: string;
+        subscriber_trend: string;
+        content_volume_vs_target: string;
+        alerts: string[];
+      };
+    }>(`/analyst/brief?period=${period || "7d"}`),
 };
 
 // --- Strategist ---
